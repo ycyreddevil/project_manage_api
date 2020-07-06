@@ -23,7 +23,7 @@ namespace project_manage_api.Service
         /// <param name="password"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public Response login(string username, string password)
+        public Response Login(string username, string password)
         {
             var result = new Response();
             try
@@ -95,6 +95,22 @@ namespace project_manage_api.Service
 
             var cookie = _httpContextAccessor.HttpContext.Request.Cookies[Define.TOKEN_NAME];
             return cookie ?? string.Empty;
+        }
+        
+        public bool Logout()
+        {
+            var token = GetToken();
+            if (string.IsNullOrEmpty(token)) return true;
+
+            try
+            {
+                _cacheContext.Remove(token);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
     }
 }
