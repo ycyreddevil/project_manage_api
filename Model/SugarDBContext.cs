@@ -16,8 +16,8 @@ namespace project_manage_api.Model
         {
             Db = new SqlSugarClient(new ConnectionConfig()
             {
-                ConnectionString = "server=localhost;Port=3306;user id=ycyreddevil;password=Ycy910663;"
-                + "database=ycy;pooling=true;Convert Zero Datetime=True;charset=utf8;",
+                ConnectionString = "server=39.108.249.230;Port=35550;user id=user;password=AllUser;"
+                + "database=project_manage;pooling=true;Convert Zero Datetime=True;charset=utf8;",
                 DbType = DbType.MySql,
                 InitKeyType = InitKeyType.Attribute,//从特性读取主键和自增列信息
                 IsAutoCloseConnection = true,//开启自动释放模式和EF原理一样我就不多解释了

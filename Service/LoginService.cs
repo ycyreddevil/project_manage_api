@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
@@ -25,7 +26,7 @@ namespace project_manage_api.Service
         /// <exception cref="Exception"></exception>
         public Response Login(string username, string password)
         {
-            var result = new Response();
+            var result = new Response<string>();
             try
             {
                 // 密码加密
@@ -35,7 +36,7 @@ namespace project_manage_api.Service
 
                 var userInfo = SimpleDb.GetSingle(u => u.userName.Equals(username));
 
-                if (username == null)
+                if (userInfo == null)
                     throw new Exception("用户不存在");
                 if (!Md5.Encrypt(userInfo.passWord).Equals(password))
                     throw new Exception("密码不正确");
@@ -50,6 +51,7 @@ namespace project_manage_api.Service
                 };
 
                 _cacheContext.Set(currentSession.Token, currentSession, DateTime.Now.AddDays(10));
+                result.Result = currentSession.Token;
             }
             catch (Exception ex)
             {
@@ -85,6 +87,10 @@ namespace project_manage_api.Service
             }
         }
         
+        /// <summary>
+        /// 获取token
+        /// </summary>
+        /// <returns></returns>
         private string GetToken()
         {
             string token = _httpContextAccessor.HttpContext.Request.Query[Define.TOKEN_NAME];
@@ -97,10 +103,15 @@ namespace project_manage_api.Service
             return cookie ?? string.Empty;
         }
         
+        /// <summary>
+        /// 退出登录
+        /// </summary>
+        /// <returns></returns>
         public bool Logout()
         {
             var token = GetToken();
-            if (string.IsNullOrEmpty(token)) return true;
+            if (string.IsNullOrEmpty(token)) 
+                return true;
 
             try
             {
@@ -111,6 +122,24 @@ namespace project_manage_api.Service
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 通过token获取用户信息
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public Dictionary<string, object> getInfo(string token)
+        {
+            var result = _cacheContext.Get<UserAuthSession>(token);
+
+            return new Dictionary<string, object>
+            {
+                {"name", result.UserName},
+                {"userId", result.UserId},
+                {"wechatUserId", result.WechatUserId},
+                {"avatar", result.Token}
+            };
         }
     }
 }

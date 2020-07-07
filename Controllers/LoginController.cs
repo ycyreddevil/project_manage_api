@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using project_manage_api.Infrastructure;
 using project_manage_api.Service;
@@ -25,6 +27,7 @@ namespace project_manage_api.Controllers
         /// <param name="password"></param>
         /// <returns></returns>
         [HttpGet]
+        [AllowAnonymous]
         public Response Login(string username, string password)
         {
             var result = new Response();
@@ -70,14 +73,36 @@ namespace project_manage_api.Controllers
         [HttpPost]
         public Response<bool> Logout()
         {
-            var resp = new Response<bool>();
+            var result = new Response<bool>();
             try
             {
-                resp.Result = _loginService.Logout();
+                result.Result = _loginService.Logout();
             }
             catch (Exception e)
             {
-                resp.Result = false;
+                result.Result = false;
+                result.Message = e.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 通过token获取用户信息
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Response<Dictionary<string, object>> getInfo(string token)
+        {
+            var resp = new Response<Dictionary<string, object>>();
+            try
+            {
+                resp.Result = _loginService.getInfo(token);
+            }
+            catch (Exception e)
+            {
+                resp.Code = 500;
                 resp.Message = e.Message;
             }
 

@@ -8,14 +8,10 @@ namespace project_manage_api.Infrastructure
     {
         public static string Encrypt(string str)
         {
-
             string pwd = String.Empty;
-
             MD5 md5 = MD5.Create();
-
             // 编码UTF8/Unicode　
             byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
-
             // 转换成字符串
             for (int i = 0; i < s.Length; i++)
             {
@@ -24,7 +20,6 @@ namespace project_manage_api.Infrastructure
                 pwd = pwd + s[i].ToString("X");
 
             }
-
             return pwd;
         }
 

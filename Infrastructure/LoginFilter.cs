@@ -26,9 +26,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
             //匿名标识
             var authorize = description.MethodInfo.GetCustomAttribute(typeof(AllowAnonymousAttribute));
             if (authorize != null)
-            {
                 return;
-            }
 
             if (_service.CheckToken()) return;
             
