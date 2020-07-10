@@ -5,6 +5,7 @@ namespace project_manage_api.Model
     /// <summary>
     /// 
     /// </summary>
+    [SugarTable("task_record")]
     public class TaskRecord
     {
         /// <summary>

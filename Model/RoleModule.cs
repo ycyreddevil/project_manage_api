@@ -1,7 +1,9 @@
 using NPOI.SS.Formula.Functions;
+using SqlSugar;
 
 namespace project_manage_api.Model
 {
+    [SugarTable("role_module")]
     public class RoleModule
     {
         public int Id { get; set; }

@@ -5,6 +5,7 @@ namespace project_manage_api.Model
     /// <summary>
     /// 
     /// </summary>
+    [SugarTable("user_department_post")]
     public class UserDepartmentPost
     {
         /// <summary>
