@@ -1,4 +1,4 @@
-﻿namespace project_manage_api.Infrastructure
+﻿﻿namespace project_manage_api.Infrastructure
 {
     public class PageRequest
     {

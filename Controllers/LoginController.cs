@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NPOI.SS.Formula.Functions;
 using project_manage_api.Infrastructure;
+using project_manage_api.Model;
 using project_manage_api.Service;
 
 namespace project_manage_api.Controllers
@@ -93,20 +95,42 @@ namespace project_manage_api.Controllers
         /// <param name="token"></param>
         /// <returns></returns>
         [HttpGet]
-        public Response<Dictionary<string, object>> getInfo(string token)
+        public Response<Dictionary<string, object>> GetInfo(string token)
         {
-            var resp = new Response<Dictionary<string, object>>();
+            var result = new Response<Dictionary<string, object>>();
             try
             {
-                resp.Result = _loginService.getInfo(token);
+                result.Result = _loginService.getInfo(token);
             }
             catch (Exception e)
             {
-                resp.Code = 500;
-                resp.Message = e.Message;
+                result.Code = 500;
+                result.Message = e.Message;
             }
 
-            return resp;
+            return result;
+        }
+
+        /// <summary>
+        /// 获取用户可访问的菜单
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Response<IEnumerable<TreeItem<Module>>> GetModulesTree(string token)
+        {
+            var result = new Response<IEnumerable<TreeItem<Module>>>();
+            try
+            {
+                result.Result = _loginService.getModulesTree(token);
+            }
+            catch (Exception e)
+            {
+                result.Code = 500;
+                result.Message = e.Message;
+            }
+
+            return result;
         }
     }
 }

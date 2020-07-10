@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
+using SqlSugar;
 
 namespace project_manage_api.Service
 {
@@ -11,7 +12,7 @@ namespace project_manage_api.Service
         private ICacheContext _cacheContext;
         private IHttpContextAccessor _httpContextAccessor;
 
-        public LoginService(ICacheContext cacheContext,IHttpContextAccessor httpContextAccessor)
+        public LoginService(ICacheContext cacheContext, IHttpContextAccessor httpContextAccessor)
         {
             _cacheContext = cacheContext;
             _httpContextAccessor = httpContextAccessor;
@@ -58,7 +59,7 @@ namespace project_manage_api.Service
                 result.Code = 500;
                 result.Message = ex.Message;
             }
-            
+
             return result;
         }
 
@@ -75,7 +76,7 @@ namespace project_manage_api.Service
 
             if (string.IsNullOrEmpty(token))
                 return false;
-            
+
             try
             {
                 var result = _cacheContext.Get<UserAuthSession>(token) != null;
@@ -86,7 +87,7 @@ namespace project_manage_api.Service
                 throw ex;
             }
         }
-        
+
         /// <summary>
         /// 获取token
         /// </summary>
@@ -102,7 +103,7 @@ namespace project_manage_api.Service
             var cookie = _httpContextAccessor.HttpContext.Request.Cookies[Define.TOKEN_NAME];
             return cookie ?? string.Empty;
         }
-        
+
         /// <summary>
         /// 退出登录
         /// </summary>
@@ -110,7 +111,7 @@ namespace project_manage_api.Service
         public bool Logout()
         {
             var token = GetToken();
-            if (string.IsNullOrEmpty(token)) 
+            if (string.IsNullOrEmpty(token))
                 return true;
 
             try
@@ -133,13 +134,37 @@ namespace project_manage_api.Service
         {
             var result = _cacheContext.Get<UserAuthSession>(token);
 
+            // 获取用户角色
+            var roleList = Db.Queryable<UserRole, Role>((ur, r) =>
+                    new object[] {JoinType.Left, ur.RoleId == r.Id}).Where(ur => ur.UserId == result.UserId)
+                .Select((ur, r) => new {r.Name}).ToList();
+
+            // 获取用户头像
+            var avatar = SimpleDb.GetSingle(u => u.userId == result.UserId).avatar;
+
             return new Dictionary<string, object>
             {
                 {"name", result.UserName},
                 {"userId", result.UserId},
                 {"wechatUserId", result.WechatUserId},
-                {"avatar", result.Token}
+                {"avatar", avatar},
+                {"role", roleList}
             };
+        }
+
+        /// <summary>
+        /// 获取用户可访问的菜单
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public IEnumerable<TreeItem<Module>> getModulesTree(string token)
+        {
+            var result = _cacheContext.Get<UserAuthSession>(token);
+            var moduleList = Db.Queryable<UserRole, RoleModule, Module>((ur, rm, m) =>
+                    new object[] {JoinType.Left, ur.RoleId == rm.RoleId && rm.ModuleId == m.Id})
+                .Where(ur => ur.UserId == result.UserId).Select<Module>().ToList();
+            var moduleTree = moduleList.GenerateTree(u => u.Id, u => u.ParentId);
+            return moduleTree;
         }
     }
 }
