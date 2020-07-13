@@ -12,7 +12,7 @@ namespace project_manage_api.Model
         public int Number { get; set; }
         public string Key { get; set; }
         public string SortColumn { get; set; }
-        public OrderByType SortType { get; set; }
+        public string SortType { get; set; }
 
         public PageRequest()
         {
@@ -20,7 +20,7 @@ namespace project_manage_api.Model
             Number = 10;
             Key = string.Empty;
             SortColumn = string.Empty;
-            SortType = OrderByType.Desc;
+            SortType = "asc";
         }
     }
 }

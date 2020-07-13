@@ -9,6 +9,18 @@ namespace project_manage_api.Infrastructure
     public class StringTools
     {
         /// <summary>
+        /// 判断字符串是否包含并且中文全拼或者首字母相等 
+        /// </summary>
+        /// <param name="target">数据库数据</param>
+        /// <param name="origin">用户输入数据</param>
+        /// <returns></returns>
+        public static bool IsEqualEngAndChinese(string target, string origin)
+        {
+            return target.Contains(origin) && PinYinHelper.IsEqual(target, origin);
+        }
+        
+        
+        /// <summary>
         /// 判断字符串中是否包含中文
         /// </summary>
         /// <param name="str">需要判断的字符串</param>

@@ -163,7 +163,12 @@ namespace project_manage_api.Service
             var result = _cacheContext.Get<UserAuthSession>(token);
             var moduleList = Db.Queryable<UserRole, RoleModule, Module>((ur, rm, m) =>
                     new object[] {JoinType.Left, ur.RoleId == rm.RoleId, JoinType.Left, rm.ModuleId == m.Id})
-                .Where(ur => ur.UserId == result.UserId).Select<Module>().ToList();
+                .Where(ur => ur.UserId == result.UserId).Select((ur, rm, m) =>
+                    new Module
+                    {
+                        Id = m.Id, CascadeId = m.CascadeId, ParentId = m.ParentId, Name = m.Name, Url = m.Url,
+                        IconName = m.IconName, ParentName = m.ParentName, SortNo = m.SortNo
+                    }).ToList();
             var moduleTree = moduleList.GenerateTree(u => u.Id, u => u.ParentId);
             return moduleTree;
         }

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using project_manage_api.Infrastructure;
 using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
 using SqlSugar;
@@ -19,9 +21,16 @@ namespace project_manage_api.Service
         /// <returns></returns>
         public List<Project> findProjects(QueryProjectRequest request)
         {
-            var list = Db.Queryable<Project>().Where(u => u.Name.Contains(request.Key)).
-                OrderBy(u => request.SortColumn, OrderByType.Desc).ToList();
-            return null;
+            var sugarQueryableList = SimpleDb.AsQueryable().Where(u =>
+                StringTools.IsEqualEngAndChinese(u.Name, request.Key) && u.StartTime >= request.StartTime && u.EndTime <= request.EndTime);
+
+            if (!string.IsNullOrEmpty(request.Type))
+                sugarQueryableList = sugarQueryableList.Where(u => u.Type == request.Type);
+
+            var list = sugarQueryableList.OrderBy(u => request.SortColumn,
+                request.SortType == "asc" ? OrderByType.Asc : OrderByType.Desc).ToList();
+
+            return list;
         }
     }
 }
