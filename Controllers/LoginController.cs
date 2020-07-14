@@ -51,6 +51,7 @@ namespace project_manage_api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
+        [AllowAnonymous]
         public Response<bool> CheckToken()
         {
             var result = new Response<bool>();
