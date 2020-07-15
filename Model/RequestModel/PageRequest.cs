@@ -8,19 +8,19 @@ namespace project_manage_api.Model
     /// </summary>
     public class PageRequest
     {
-        public int Page { get; set; }
-        public int Number { get; set; }
-        public string Key { get; set; }
-        public string SortColumn { get; set; }
-        public string SortType { get; set; }
+        public int page { get; set; }
+        public int limit { get; set; }
+        public string key { get; set; }
+        public string sortColumn { get; set; }
+        public string sortType { get; set; }
 
         public PageRequest()
         {
-            Page = 1;
-            Number = 10;
-            Key = string.Empty;
-            SortColumn = string.Empty;
-            SortType = "asc";
+            page = 1;
+            limit = 20;
+            key = string.Empty;
+            sortColumn = "Id";
+            sortType = "asc";
         }
     }
 }

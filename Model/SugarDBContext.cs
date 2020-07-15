@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+ using project_manage_api.Infrastructure;
 
-namespace project_manage_api.Model
+ namespace project_manage_api.Model
 {
     public class SugarDBContext<T> where T : class, new()
     {
@@ -14,13 +15,29 @@ namespace project_manage_api.Model
 
         public SugarDBContext()
         {
+            // var expMethods = new List<SqlFuncExternal>();
+            // expMethods.Add(new SqlFuncExternal()
+            // {
+            //     UniqueMethodName = "IsEqualEngAndChinese",
+            //     MethodValue = (expInfo, dbType, expContext) =>
+            //     {
+            //         if (dbType == DbType.MySql)
+            //             return StringTools.IsEqualEngAndChinese(expInfo.Args[0].MemberName);
+            //         throw new Exception("未实现");
+            //     }
+            // });
+            
             Db = new SqlSugarClient(new ConnectionConfig()
             {
                 ConnectionString = "server=39.108.249.230;Port=35550;user id=user;password=AllUser;"
                 + "database=project_manage;pooling=true;Convert Zero Datetime=True;charset=utf8;",
                 DbType = DbType.MySql,
                 InitKeyType = InitKeyType.Attribute,//从特性读取主键和自增列信息
-                IsAutoCloseConnection = true,//开启自动释放模式和EF原理一样我就不多解释了
+                IsAutoCloseConnection = true,//开启自动释放模式和EF原理一样我就不多解释了,
+                // ConfigureExternalServices = new ConfigureExternalServices()
+                // {
+                //     SqlFuncServices = expMethods
+                // }
             });
 
             //调式代码 用来打印SQL 
