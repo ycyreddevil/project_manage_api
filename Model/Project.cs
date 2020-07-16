@@ -76,15 +76,27 @@ namespace project_manage_api.Model
 
         private System.Int32 _ChargeUserId;
         /// <summary>
-        /// 项目负责人
+        /// 项目负责人id
         /// </summary>
         public System.Int32 ChargeUserId { get { return this._ChargeUserId; } set { this._ChargeUserId = value; } }
+        
+        private System.String _ChargeUserName;
+        /// <summary>
+        /// 项目负责人名称
+        /// </summary>
+        public System.String ChargeUserName { get { return this._ChargeUserName; } set { this._ChargeUserName = value; } }
 
         private System.Int32 _SubmitterId;
         /// <summary>
         /// 提交人id
         /// </summary>
         public System.Int32 SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
+        
+        private System.String _SubmitterName;
+        /// <summary>
+        /// 提交人id
+        /// </summary>
+        public System.String SubmitterName { get { return this._SubmitterName; } set { this._SubmitterName = value; } }
 
         private System.DateTime _CreateTime;
         /// <summary>
