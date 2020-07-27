@@ -14,7 +14,28 @@ namespace project_manage_api.Model
             +"database=yelioa;pooling=true;Convert Zero Datetime=True;charset=utf8;",
             DbType = DbType.MySql,//设置数据库类型
             IsAutoCloseConnection = true,//自动释放数据务，如果存在事务，在事务结束后释放
-            InitKeyType = InitKeyType.Attribute //从实体特性中读取主键自增列信息
+            InitKeyType = InitKeyType.Attribute, //从实体特性中读取主键自增列信息
+            ConfigureExternalServices = new ConfigureExternalServices()
+            {
+                SqlFuncServices = getIdentifyMethod() //set ext method
+            }
         });
+        
+        public static List<SqlFuncExternal> getIdentifyMethod()
+        {
+            var expMethods = new List<SqlFuncExternal>();
+            expMethods.Add(new SqlFuncExternal()
+            {
+                UniqueMethodName = "MyToString",
+                MethodValue = (expInfo, dbType, expContext) =>
+                {
+                    if (dbType == DbType.SqlServer)
+                        return string.Format("CAST({0} AS VARCHAR(MAX))", expInfo.Args[0].MemberName);
+                    else
+                        throw new Exception("未实现");
+                }
+            });
+            return expMethods;
+        }
     }
 }

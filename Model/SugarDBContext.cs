@@ -15,18 +15,6 @@ using System.Linq.Expressions;
 
         public SugarDBContext()
         {
-            // var expMethods = new List<SqlFuncExternal>();
-            // expMethods.Add(new SqlFuncExternal()
-            // {
-            //     UniqueMethodName = "IsEqualEngAndChinese",
-            //     MethodValue = (expInfo, dbType, expContext) =>
-            //     {
-            //         if (dbType == DbType.MySql)
-            //             return StringTools.IsEqualEngAndChinese(expInfo.Args[0].MemberName);
-            //         throw new Exception("未实现");
-            //     }
-            // });
-            
             Db = new SqlSugarClient(new ConnectionConfig()
             {
                 ConnectionString = "server=39.108.249.230;Port=35550;user id=user;password=AllUser;"
@@ -48,7 +36,6 @@ using System.Linq.Expressions;
                 Console.WriteLine();
             };
         }
-
         public virtual List<T> GetList()
         {
             return SimpleDb.GetList();
