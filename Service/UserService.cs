@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using project_manage_api.Infrastructure;
 using project_manage_api.Model;
+using SqlSugar;
 
 namespace project_manage_api.Service
 {
@@ -16,7 +18,7 @@ namespace project_manage_api.Service
         /// <returns></returns>
         public List<Users> findUsers(string key)
         {
-            return SimpleDb.AsQueryable().Where(u => u.userName.Contains(key)).ToList();
+            return SimpleDb.AsQueryable().Where(u => u.userName.Contains(key) || getPinYinFirstLetter(u.userName).Contains(key)).ToList();
         }
     }
 }

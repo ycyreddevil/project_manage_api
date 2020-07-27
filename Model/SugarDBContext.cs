@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+ using NPinyin;
  using project_manage_api.Infrastructure;
 
  namespace project_manage_api.Model
@@ -22,10 +23,10 @@ using System.Linq.Expressions;
                 DbType = DbType.MySql,
                 InitKeyType = InitKeyType.Attribute,//从特性读取主键和自增列信息
                 IsAutoCloseConnection = true,//开启自动释放模式和EF原理一样我就不多解释了,
-                // ConfigureExternalServices = new ConfigureExternalServices()
-                // {
-                //     SqlFuncServices = expMethods
-                // }
+                ConfigureExternalServices = new ConfigureExternalServices()
+                {
+                    SqlFuncServices = getIdentifyMethod() //set ext method
+                }
             });
 
             //调式代码 用来打印SQL 
@@ -36,6 +37,30 @@ using System.Linq.Expressions;
                 Console.WriteLine();
             };
         }
+        
+        public List<SqlFuncExternal> getIdentifyMethod()
+        {
+            var expMethods = new List<SqlFuncExternal>();
+            expMethods.Add(new SqlFuncExternal()
+            {
+                UniqueMethodName = "getPinYinFirstLetter",
+                MethodValue = (expInfo, dbType, expContext) =>
+                {
+                    if (dbType == DbType.MySql)
+                        return Pinyin.GetInitials(expInfo.Args[0].MemberValue.ToString());
+                    // return string.Format("CAST({0} AS VARCHAR(MAX))", expInfo.Args[0].MemberName);
+                    else
+                        throw new Exception("未实现");
+                }
+            });
+            return expMethods;
+        }
+        
+        public static string getPinYinFirstLetter<T>(T str)
+        {
+            throw new NotSupportedException("Can only be used in expressions");
+        }
+        
         public virtual List<T> GetList()
         {
             return SimpleDb.GetList();

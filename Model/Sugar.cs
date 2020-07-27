@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+ using NPinyin;
+ using project_manage_api.Infrastructure;
 
-namespace project_manage_api.Model
+ namespace project_manage_api.Model
 {
     class Sugar
     {
@@ -26,16 +28,22 @@ namespace project_manage_api.Model
             var expMethods = new List<SqlFuncExternal>();
             expMethods.Add(new SqlFuncExternal()
             {
-                UniqueMethodName = "MyToString",
+                UniqueMethodName = "getPinYinFirstLetter",
                 MethodValue = (expInfo, dbType, expContext) =>
                 {
-                    if (dbType == DbType.SqlServer)
-                        return string.Format("CAST({0} AS VARCHAR(MAX))", expInfo.Args[0].MemberName);
+                    if (dbType == DbType.MySql)
+                        return expInfo.Args[0].MemberValue.ToString();
+                    // return string.Format("CAST({0} AS VARCHAR(MAX))", expInfo.Args[0].MemberName);
                     else
                         throw new Exception("未实现");
                 }
             });
             return expMethods;
+        }
+        
+        public static string getPinYinFirstLetter(string str)
+        {
+            return Pinyin.GetInitials(str);
         }
     }
 }
