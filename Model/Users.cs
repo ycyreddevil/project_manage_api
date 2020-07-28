@@ -18,6 +18,7 @@ namespace project_manage_api.Model
         /// <summary>
         /// 
         /// </summary>
+        [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
         public int userId { get { return this._userId; } set { this._userId = value; } }
 
         private System.String _wechatUserId;

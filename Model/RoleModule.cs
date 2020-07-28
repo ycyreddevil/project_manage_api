@@ -6,6 +6,7 @@ namespace project_manage_api.Model
     [SugarTable("role_module")]
     public class RoleModule
     {
+        [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
         public int Id { get; set; }
         public int RoleId { get; set; }
         public int ModuleId { get; set; }

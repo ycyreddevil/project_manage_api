@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
@@ -11,8 +12,13 @@ namespace project_manage_api.Service
 {
     public class ProjectService : SugarDBContext<Project>
     {
-        public ProjectService()
+        private IHttpContextAccessor _httpContextAccessor;
+        private ICacheContext _cacheContext;
+        
+        public ProjectService(IHttpContextAccessor httpContextAccessor, ICacheContext cacheContext)
         {
+            _httpContextAccessor = httpContextAccessor;
+            _cacheContext = cacheContext;
         }
 
         /// <summary>
@@ -54,6 +60,16 @@ namespace project_manage_api.Service
         /// <param name="request"></param>
         public int addOrUpdateProject(Project project)
         {
+            project.CreateTime = DateTime.Now;
+            
+            string token = _httpContextAccessor.HttpContext.Request.Headers[Define.TOKEN_NAME];
+            var result = _cacheContext.Get<UserAuthSession>(token);
+            
+            project.SubmitterId = result.UserId;
+            project.SubmitterName = result.UserName;
+            project.Level = 2;
+            project.Status = "发布";
+
             return Db.Saveable(project).ExecuteCommand();
         }
 
@@ -65,6 +81,17 @@ namespace project_manage_api.Service
         {
             var projectMemberList = projectMember.ToList<ProjectMember>();
             Db.Saveable(projectMemberList).ExecuteReturnList();
+        }
+
+        /// <summary>
+        /// 通过id获取project
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public Project getProjectById(int id)
+        {
+            var project = SimpleDb.GetSingle(u => u.Id == id);
+            return project;
         }
     }
 }

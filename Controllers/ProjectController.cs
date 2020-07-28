@@ -111,5 +111,28 @@ namespace project_manage_api.Controllers
 
             return result;
         }
+
+        /// <summary>
+        /// 通过id获取project
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Project> getProjectById(int id)
+        {
+            var result = new Response<Project>();
+
+            try
+            {
+                result.Result = _service.getProjectById(id);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
     }
 }
