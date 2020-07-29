@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
@@ -49,9 +50,9 @@ namespace project_manage_api.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public Response<List<ProjectMember>> findProjectMember(int projectId)
+        public Response<string> findProjectMember(int projectId)
         {
-            var result = new Response<List<ProjectMember>>();
+            var result = new Response<string>();
 
             try
             {
@@ -95,13 +96,13 @@ namespace project_manage_api.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public Response addOrUpdateProjectMember(string projectMember)
+        public Response<ProjectMember> addOrUpdateProjectMember(ProjectMember projectMember)
         {
-            var result = new Response();
+            var result = new Response<ProjectMember>();
 
             try
             {
-                _service.addOrUpdateProjectMember(projectMember);
+                result.Result = _service.addOrUpdateProjectMember(projectMember);
             }
             catch (Exception ex)
             {

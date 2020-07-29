@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using NPOI.SS.Formula.Functions;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
@@ -14,7 +17,7 @@ namespace project_manage_api.Service
     {
         private IHttpContextAccessor _httpContextAccessor;
         private ICacheContext _cacheContext;
-        
+
         public ProjectService(IHttpContextAccessor httpContextAccessor, ICacheContext cacheContext)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -35,9 +38,10 @@ namespace project_manage_api.Service
 
             if (!string.IsNullOrEmpty(request.type))
                 sugarQueryableList = sugarQueryableList.Where(u => u.Type == request.type);
-            
+
             var list = sugarQueryableList.OrderBy(u => request.sortColumn,
-                request.sortType == "asc" ? OrderByType.Asc : OrderByType.Desc).ToPageList(request.page, request.limit, ref total);
+                    request.sortType == "asc" ? OrderByType.Asc : OrderByType.Desc)
+                .ToPageList(request.page, request.limit, ref total);
 
             var pageResponse = new PageResponse<List<Project>> {Total = total, Result = list};
 
@@ -49,9 +53,20 @@ namespace project_manage_api.Service
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        public List<ProjectMember> findProjectMember(int projectId)
+        public string findProjectMember(int projectId)
         {
-            return Db.Queryable<ProjectMember>().Where(u => u.ProjectId == projectId && u.Status == 1).ToList();
+            var list = Db
+                .Queryable<ProjectMember, Users>(
+                    (p, u) => new object[] {JoinType.Left, p.UserId == u.userId})
+                .Where((p, u) => p.ProjectId == projectId && p.Status == 1)
+                .Select((p, u) => new
+                {
+                    id = p.Id, projectId = p.ProjectId, userId = p.UserId, userName = p.UserName,
+                    modifyTime = p.ModifyTime,
+                    projectRole = p.ProjectRole, status = p.Status, mobile = u.mobilePhone, avatar = u.avatar
+                }).ToJson();
+
+            return list;
         }
 
         /// <summary>
@@ -61,10 +76,10 @@ namespace project_manage_api.Service
         public int addOrUpdateProject(Project project)
         {
             project.CreateTime = DateTime.Now;
-            
+
             string token = _httpContextAccessor.HttpContext.Request.Headers[Define.TOKEN_NAME];
             var result = _cacheContext.Get<UserAuthSession>(token);
-            
+
             project.SubmitterId = result.UserId;
             project.SubmitterName = result.UserName;
             project.Level = 2;
@@ -77,10 +92,11 @@ namespace project_manage_api.Service
         /// 创建或修改项目团队成员
         /// </summary>
         /// <param name="request"></param>
-        public void addOrUpdateProjectMember(string projectMember)
+        public ProjectMember addOrUpdateProjectMember(ProjectMember projectMember)
         {
-            var projectMemberList = projectMember.ToList<ProjectMember>();
-            Db.Saveable(projectMemberList).ExecuteReturnList();
+            var result = Db.Saveable(projectMember).ExecuteReturnEntity();
+
+            return result;
         }
 
         /// <summary>

@@ -28,11 +28,11 @@ namespace project_manage_api.Model
         /// </summary>
         public System.Int32 ProjectId { get { return this._ProjectId; } set { this._ProjectId = value; } }
 
-        private System.String _UserId;
+        private System.Int32 _UserId;
         /// <summary>
         /// 成员id
         /// </summary>
-        public System.String UserId { get { return this._UserId; } set { this._UserId = value; } }
+        public System.Int32 UserId { get { return this._UserId; } set { this._UserId = value; } }
         
         private System.String _UserName;
         /// <summary>

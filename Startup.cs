@@ -42,7 +42,11 @@ namespace project_manage_api
                 
                 options.OperationFilter<GlobalHttpHeaderOperationFilter>(); // 添加httpHeader参数
             });
-            
+            // services.AddControllers().AddJsonOptions(options =>
+            // {
+            //     options.JsonSerializerOptions.Converters.Add(SystemTextJsonConvert.DateTimeConverter());
+            //     options.JsonSerializerOptions.Converters.Add(SystemTextJsonConvert.DateTimeConverter());
+            // }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             services.AddMvc(options => options.EnableEndpointRouting = false);
             services.AddMvc(config => { config.Filters.Add<LoginFilter>(); }).AddControllersAsServices();
             services.AddCors();
