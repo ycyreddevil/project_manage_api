@@ -44,6 +44,29 @@ using System.Linq;
                 };
             }
         }
+        
+        public static IEnumerable<TreeItem> GenerateVueOrgTree<T, K>(
+            this IEnumerable<T> collection,
+            Func<T, K> idSelector,
+            Func<T, K> parentIdSelector,
+            K rootId = default(K))
+        {
+            foreach (var c in collection.Where(u =>
+            {
+                var selector = parentIdSelector(u);
+                return (rootId == null && selector == null)  
+                       || (rootId != null &&rootId.Equals(selector));
+            }))
+            {
+                yield return new TreeItem
+                {
+                    id = c.MapTo<Task>().Id,
+                    label = c.MapTo<Task>().TaskDesc,
+                    children = collection.GenerateVueOrgTree(idSelector, parentIdSelector, idSelector(c))
+                };
+            }
+        }
+        
         /// <summary>
         /// 把数组转为逗号连接的字符串
         /// </summary>

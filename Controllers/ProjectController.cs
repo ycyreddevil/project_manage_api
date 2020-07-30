@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
@@ -126,6 +127,52 @@ namespace project_manage_api.Controllers
             try
             {
                 result.Result = _service.getProjectById(id);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 通过id获取projectMember
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<ProjectMember> getProjectMemberById(int id)
+        {
+            var result = new Response<ProjectMember>();
+
+            try
+            {
+                result.Result = _service.getProjectMemberById(id);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 获取项目任务树
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Dictionary<string, object>> getProjectTaskTree(int projectId)
+        {
+            var result = new Response<Dictionary<string, object>>();
+
+            try
+            {
+                result.Result = _service.getProjectTaskTree(projectId);
             }
             catch (Exception ex)
             {

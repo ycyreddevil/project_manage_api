@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json.Linq;
 using NPOI.SS.Formula.Functions;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
@@ -94,8 +95,16 @@ namespace project_manage_api.Service
         /// <param name="request"></param>
         public ProjectMember addOrUpdateProjectMember(ProjectMember projectMember)
         {
-            var result = Db.Saveable(projectMember).ExecuteReturnEntity();
+            projectMember.ModifyTime = DateTime.Now;
 
+            if (projectMember.Id <= 0)
+            {
+                //如果是新增 则把手机号查询出来回显
+                var mobilePhone = Db.Queryable<Users>().Where(u => u.userId == projectMember.UserId).Select(u => u.mobilePhone);
+            }
+            
+            var result = Db.Saveable(projectMember).ExecuteReturnEntity();
+            
             return result;
         }
 
@@ -108,6 +117,23 @@ namespace project_manage_api.Service
         {
             var project = SimpleDb.GetSingle(u => u.Id == id);
             return project;
+        }
+
+        public ProjectMember getProjectMemberById(int projectMemberId)
+        {
+            return Db.Queryable<ProjectMember>().Where(u => u.Id == projectMemberId).ToList()[0];
+        }
+
+        public Dictionary<string, object> getProjectTaskTree(int projectId)
+        {
+            var taskList = Db.Queryable<Task>().Where(u => u.ProjectId == projectId).ToList();
+            var taskTree = taskList.GenerateVueOrgTree(u => u.Id, u => u.ParentId);
+
+            // 处理返回tree 添加根节点 根节点名称为项目名称
+            var projectName = SimpleDb.GetSingle(u => u.Id == projectId).Name;
+            var result = new Dictionary<string, object> {{"id", 0}, {"label", projectName}, {"children", taskTree}};
+
+            return result;
         }
     }
 }

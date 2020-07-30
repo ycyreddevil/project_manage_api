@@ -7,4 +7,13 @@ namespace project_manage_api.Model
         public T Item { get; set; }
         public IEnumerable<TreeItem<T>> Children { get; set; }
     }
+    
+    public class TreeItem
+    {
+        public int id { get; set; }
+        
+        public string label { get; set; }
+        
+        public IEnumerable<TreeItem> children { get; set; }
+    }
 }
