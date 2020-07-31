@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using project_manage_api.Infrastructure;
@@ -173,6 +174,29 @@ namespace project_manage_api.Controllers
             try
             {
                 result.Result = _service.getProjectTaskTree(projectId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 通过id获取task
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Task> getTaskById(int taskId)
+        {
+            var result = new Response<Task>();
+
+            try
+            {
+                result.Result = _service.getTaskById(taskId);
             }
             catch (Exception ex)
             {

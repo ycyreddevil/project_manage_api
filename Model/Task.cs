@@ -20,6 +20,12 @@ namespace project_manage_api.Model
         /// </summary>
         [SugarColumn(IsPrimaryKey = true, IsIdentity = true)]
         public System.Int32 Id { get { return this._Id; } set { this._Id = value; } }
+        
+        private System.String _CascadeId;
+        /// <summary>
+        /// 项目id
+        /// </summary>
+        public System.String CascadeId { get { return this._CascadeId; } set { this._CascadeId = value; } }
 
         private System.Int32 _ProjectId;
         /// <summary>
@@ -32,6 +38,12 @@ namespace project_manage_api.Model
         /// 父任务id
         /// </summary>
         public System.Int32 ParentId { get { return this._ParentId; } set { this._ParentId = value; } }
+        
+        private System.String _TaskName;
+        /// <summary>
+        /// 任务名称
+        /// </summary>
+        public System.String TaskName { get { return this._TaskName; } set { this._TaskName = value; } }
 
         private System.String _TaskDesc;
         /// <summary>
@@ -51,11 +63,17 @@ namespace project_manage_api.Model
         /// </summary>
         public System.String AcceptanceCriteria { get { return this._AcceptanceCriteria; } set { this._AcceptanceCriteria = value; } }
 
-        private System.String _ChargeUserId;
+        private System.Int32 _ChargeUserId;
         /// <summary>
         /// 负责人id
         /// </summary>
-        public System.String ChargeUserId { get { return this._ChargeUserId; } set { this._ChargeUserId = value; } }
+        public System.Int32 ChargeUserId { get { return this._ChargeUserId; } set { this._ChargeUserId = value; } }
+        
+        private System.String _ChargeUserName;
+        /// <summary>
+        /// 负责人姓名
+        /// </summary>
+        public System.String ChargeUserName { get { return this._ChargeUserName; } set { this._ChargeUserName = value; } }
 
         private System.Double _Weight;
         /// <summary>
@@ -81,11 +99,17 @@ namespace project_manage_api.Model
         /// </summary>
         public System.String Status { get { return this._Status; } set { this._Status = value; } }
 
-        private System.String _SubmitterId;
+        private System.Int32 _SubmitterId;
         /// <summary>
         /// 提价人id
         /// </summary>
-        public System.String SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
+        public System.Int32 SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
+        
+        private System.String _SubmitterName;
+        /// <summary>
+        /// 提价人id
+        /// </summary>
+        public System.String SubmitterName { get { return this._SubmitterName; } set { this._SubmitterName = value; } }
 
         private System.DateTime _CreateTime;
         /// <summary>

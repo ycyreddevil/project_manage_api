@@ -18,11 +18,15 @@ namespace project_manage_api.Service
     {
         private IHttpContextAccessor _httpContextAccessor;
         private ICacheContext _cacheContext;
+        private UserAuthSession user;
 
         public ProjectService(IHttpContextAccessor httpContextAccessor, ICacheContext cacheContext)
         {
             _httpContextAccessor = httpContextAccessor;
             _cacheContext = cacheContext;
+
+            string token = _httpContextAccessor.HttpContext.Request.Headers[Define.TOKEN_NAME];
+            user = _cacheContext.Get<UserAuthSession>(token);
         }
 
         /// <summary>
@@ -78,11 +82,8 @@ namespace project_manage_api.Service
         {
             project.CreateTime = DateTime.Now;
 
-            string token = _httpContextAccessor.HttpContext.Request.Headers[Define.TOKEN_NAME];
-            var result = _cacheContext.Get<UserAuthSession>(token);
-
-            project.SubmitterId = result.UserId;
-            project.SubmitterName = result.UserName;
+            project.SubmitterId = user.UserId;
+            project.SubmitterName = user.UserName;
             project.Level = 2;
             project.Status = "发布";
 
@@ -100,11 +101,12 @@ namespace project_manage_api.Service
             if (projectMember.Id <= 0)
             {
                 //如果是新增 则把手机号查询出来回显
-                var mobilePhone = Db.Queryable<Users>().Where(u => u.userId == projectMember.UserId).Select(u => u.mobilePhone);
+                var mobilePhone = Db.Queryable<Users>().Where(u => u.userId == projectMember.UserId)
+                    .Select(u => u.mobilePhone);
             }
-            
+
             var result = Db.Saveable(projectMember).ExecuteReturnEntity();
-            
+
             return result;
         }
 
@@ -119,21 +121,72 @@ namespace project_manage_api.Service
             return project;
         }
 
+        /// <summary>
+        /// 通过项目成员id来获取项目成员
+        /// </summary>
+        /// <param name="projectMemberId"></param>
+        /// <returns></returns>
         public ProjectMember getProjectMemberById(int projectMemberId)
         {
             return Db.Queryable<ProjectMember>().Where(u => u.Id == projectMemberId).ToList()[0];
         }
 
+        /// <summary>
+        /// 前端展示项目任务树
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
         public Dictionary<string, object> getProjectTaskTree(int projectId)
         {
-            var taskList = Db.Queryable<Task>().Where(u => u.ProjectId == projectId).ToList();
-            var taskTree = taskList.GenerateVueOrgTree(u => u.Id, u => u.ParentId);
+            var member = Db.Queryable<ProjectMember>().Where(u => u.ProjectId == projectId && u.UserId == user.UserId)
+                .ToList()[0];
+
+            var treeList = new List<Task>();
+
+            // 如果是项目经理或是管理员 才能查询到项目中所有子任务 否则查询到自己负责任务的所有下级任务以及和自己负责任务相关联的上级任务
+            var allTaskList = Db.Queryable<Task>().Where(u => u.ProjectId == projectId);
+
+            if (!member.ProjectRole.Equals("项目经理"))
+            {
+                var inferiorTaskList = allTaskList.Where(u => u.ChargeUserId == user.UserId).ToList();
+                treeList.AddRange(inferiorTaskList);
+
+                foreach (var inferiorTask in inferiorTaskList)
+                {
+                    var list = Db.Queryable<Task>().Where(u => !u.CascadeId.Equals(inferiorTask.CascadeId) && (
+                            u.CascadeId.Contains(inferiorTask.CascadeId) ||
+                            inferiorTask.CascadeId.Contains(u.CascadeId)))
+                        .ToList();
+
+                    treeList.AddRange(list);
+                }
+            }
+            else
+            {
+                treeList = allTaskList.ToList();
+            }
+
+            var taskTree = treeList.GenerateVueOrgTree(u => u.Id, u => u.ParentId);
 
             // 处理返回tree 添加根节点 根节点名称为项目名称
-            var projectName = SimpleDb.GetSingle(u => u.Id == projectId).Name;
-            var result = new Dictionary<string, object> {{"id", 0}, {"label", projectName}, {"children", taskTree}};
+            var project = SimpleDb.GetSingle(u => u.Id == projectId);
+            var result = new Dictionary<string, object>
+            {
+                {"id", 0}, {"label", project.Name}, {"children", taskTree}, {"chargeUserName", project.ChargeUserName},
+                {"status", "已审批"}
+            };
 
             return result;
+        }
+
+        /// <summary>
+        /// 通过id获取task
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <returns></returns>
+        public Task getTaskById(int taskId)
+        {
+            return Db.Queryable<Task>().Where(u => u.Id == taskId).ToList()[0];
         }
     }
 }

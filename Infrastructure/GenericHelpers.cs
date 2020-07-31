@@ -61,7 +61,9 @@ using System.Linq;
                 yield return new TreeItem
                 {
                     id = c.MapTo<Task>().Id,
-                    label = c.MapTo<Task>().TaskDesc,
+                    label = c.MapTo<Task>().TaskName,
+                    chargeUserName = c.MapTo<Task>().ChargeUserName,
+                    status = c.MapTo<Task>().Status,
                     children = collection.GenerateVueOrgTree(idSelector, parentIdSelector, idSelector(c))
                 };
             }

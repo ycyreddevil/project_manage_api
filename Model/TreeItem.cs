@@ -13,7 +13,11 @@ namespace project_manage_api.Model
         public int id { get; set; }
         
         public string label { get; set; }
+
+        public string chargeUserName { get; set; }
         
+        public string status { get; set; }
+
         public IEnumerable<TreeItem> children { get; set; }
     }
 }
