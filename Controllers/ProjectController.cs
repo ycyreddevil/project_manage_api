@@ -206,5 +206,28 @@ namespace project_manage_api.Controllers
 
             return result;
         }
+        
+        /// <summary>
+        /// 通过id获取task
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Dictionary<string, object>> getTaskRecordByProjectId(QueryTaskRecordRequest request)
+        {
+            var result = new Response<Dictionary<string, object>>();
+
+            try
+            {
+                result.Result = _service.getTaskRecordByProjectId(request);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
     }
 }

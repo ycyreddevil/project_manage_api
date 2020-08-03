@@ -45,7 +45,17 @@ using System.Linq;
             }
         }
         
-        public static IEnumerable<TreeItem> GenerateVueOrgTree<T, K>(
+        /// <summary>
+        /// 前端项目任务树
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <param name="idSelector"></param>
+        /// <param name="parentIdSelector"></param>
+        /// <param name="rootId"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="K"></typeparam>
+        /// <returns></returns>
+        public static IEnumerable<TreeItem> GenerateVueTaskTree<T, K>(
             this IEnumerable<T> collection,
             Func<T, K> idSelector,
             Func<T, K> parentIdSelector,
@@ -64,7 +74,32 @@ using System.Linq;
                     label = c.MapTo<Task>().TaskName,
                     chargeUserName = c.MapTo<Task>().ChargeUserName,
                     status = c.MapTo<Task>().Status,
-                    children = collection.GenerateVueOrgTree(idSelector, parentIdSelector, idSelector(c))
+                    children = collection.GenerateVueTaskTree(idSelector, parentIdSelector, idSelector(c))
+                };
+            }
+        }
+        
+        public static IEnumerable<CommentResponse> GenerateVueCommentTree<T, K>(
+            this IEnumerable<T> collection,
+            Func<T, K> idSelector,
+            Func<T, K> parentIdSelector,
+            K rootId = default(K))
+        {
+            foreach (var c in collection.Where(u =>
+            {
+                var selector = parentIdSelector(u);
+                return (rootId == null && selector == null)  
+                       || (rootId != null &&rootId.Equals(selector));
+            }))
+            {
+                yield return new CommentResponse
+                {
+                    id = c.MapTo<Comment>().Id,
+                    parentId = c.MapTo<Comment>().ParentId,
+                    submitterId = c.MapTo<Comment>().SubmitterId,
+                    content = c.MapTo<Comment>().Content,
+                    createDate = c.MapTo<Comment>().CreateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+                    childrenList = collection.GenerateVueCommentTree(idSelector, parentIdSelector, idSelector(c))
                 };
             }
         }

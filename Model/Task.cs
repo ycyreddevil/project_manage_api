@@ -93,11 +93,11 @@ namespace project_manage_api.Model
         /// </summary>
         public System.Int32? Priority { get { return this._Priority; } set { this._Priority = value; } }
 
-        private System.String _Status;
+        private System.Int16 _Status;
         /// <summary>
         /// 任务状态
         /// </summary>
-        public System.String Status { get { return this._Status; } set { this._Status = value; } }
+        public System.Int16 Status { get { return this._Status; } set { this._Status = value; } }
 
         private System.Int32 _SubmitterId;
         /// <summary>

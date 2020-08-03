@@ -166,7 +166,7 @@ namespace project_manage_api.Service
                 treeList = allTaskList.ToList();
             }
 
-            var taskTree = treeList.GenerateVueOrgTree(u => u.Id, u => u.ParentId);
+            var taskTree = treeList.GenerateVueTaskTree(u => u.Id, u => u.ParentId);
 
             // 处理返回tree 添加根节点 根节点名称为项目名称
             var project = SimpleDb.GetSingle(u => u.Id == projectId);
@@ -187,6 +187,48 @@ namespace project_manage_api.Service
         public Task getTaskById(int taskId)
         {
             return Db.Queryable<Task>().Where(u => u.Id == taskId).ToList()[0];
+        }
+
+        /// <summary>
+        /// 获取项目动态 提交情况
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public Dictionary<string, object> getTaskRecordByProjectId(QueryTaskRecordRequest request)
+        {
+            var dateQuery = Db.Queryable<TaskRecord, Task, Project>((tr, t, p) => new object[]
+            {
+                JoinType.Left, tr.TaskId == t.Id, JoinType.Left, t.ProjectId == p.Id
+            }).Where((tr, t, p) => t.ProjectId == request.projectId && tr.Status == 1);
+
+            if (!string.IsNullOrEmpty(request.startTime) && !string.IsNullOrEmpty(request.endTime))
+                dateQuery = dateQuery.Where((tr, t, p) =>
+                    SqlFunc.Between(tr.CreateTime, request.startTime, request.endTime));
+
+            var dateList = dateQuery.GroupBy((tr, t, p) => SqlFunc.DateValue(tr.CreateTime, DateType.Year) + "-" +
+                                                           SqlFunc.DateValue(tr.CreateTime, DateType.Month) + "-" +
+                                                           SqlFunc.DateValue(tr.CreateTime, DateType.Day))
+                .OrderBy((tr, t, p) => tr.CreateTime)
+                .Select((tr, t, p) => tr.CreateTime).ToList();
+
+            var dict = new Dictionary<string, object>();
+            foreach (var date in dateList)
+            {
+                var taskRecordList = Db.Queryable<TaskRecord>().Where(u => SqlFunc.DateIsSame(date, u.CreateTime))
+                    .ToList();
+                dict.Add(date.ToString("yyyy-MM-dd"), taskRecordList);
+            }
+
+            return dict;
+        }
+
+        public List<Comment> getProjectCommentById(int projectId)
+        {
+            var commentList = Db.Queryable<Comment>().Where(u => u.Type == 0 && u.DocId == projectId).ToList();
+
+            var commentResponseList = commentList.GenerateVueCommentTree(u => u.Id, u => u.ParentId);
+            
+            return null;
         }
     }
 }

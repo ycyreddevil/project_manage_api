@@ -16,7 +16,7 @@ namespace project_manage_api.Model
 
         public string chargeUserName { get; set; }
         
-        public string status { get; set; }
+        public int status { get; set; }
 
         public IEnumerable<TreeItem> children { get; set; }
     }

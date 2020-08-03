@@ -33,6 +33,12 @@ namespace project_manage_api.Model
         /// 提交人id
         /// </summary>
         public System.String SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
+        
+        private System.String _SubmitterName;
+        /// <summary>
+        /// 提交人id
+        /// </summary>
+        public System.String SubmitterName { get { return this._SubmitterName; } set { this._SubmitterName = value; } }
 
         private System.String _Desc;
         /// <summary>
@@ -58,11 +64,11 @@ namespace project_manage_api.Model
         /// </summary>
         public System.String Opinion { get { return this._Opinion; } set { this._Opinion = value; } }
 
-        private System.Double _CreateTime;
+        private System.DateTime _CreateTime;
         /// <summary>
         /// 创建时间
         /// </summary>
-        public System.Double CreateTime { get { return this._CreateTime; } set { this._CreateTime = value; } }
+        public System.DateTime CreateTime { get { return this._CreateTime; } set { this._CreateTime = value; } }
 
         private System.DateTime? _StartTime;
         /// <summary>
