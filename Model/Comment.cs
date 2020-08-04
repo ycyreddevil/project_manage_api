@@ -39,11 +39,18 @@ namespace project_manage_api.Model
         /// </summary>
         public System.Int32 DocId { get { return this._DocId; } set { this._DocId = value; } }
 
-        private System.String _SubmitterId;
+        private System.Int32 _SubmitterId;
         /// <summary>
         /// 提交人id
         /// </summary>
-        public System.String SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
+        public System.Int32 SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
+        
+        private System.Int32 _TargetId;
+        /// <summary>
+        /// 被评论者id
+        /// </summary>
+        public System.Int32 TargetId { get { return this._TargetId; } set { this._TargetId = value; } }
+        
 
         private System.String _Content;
         /// <summary>

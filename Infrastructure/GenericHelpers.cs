@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
  using project_manage_api.Model;
+ using SqlSugar;
 
  namespace project_manage_api.Infrastructure
 {
@@ -83,6 +84,7 @@ using System.Linq;
             this IEnumerable<T> collection,
             Func<T, K> idSelector,
             Func<T, K> parentIdSelector,
+            SqlSugarClient Db,
             K rootId = default(K))
         {
             foreach (var c in collection.Where(u =>
@@ -92,14 +94,20 @@ using System.Linq;
                        || (rootId != null &&rootId.Equals(selector));
             }))
             {
+                var commentUser = Db.Queryable<Users>().Where(u => u.userId == c.MapTo<Comment>().SubmitterId).Select(u =>
+                    new CommentUserResponse {id = u.userId, nickName = u.userName, avatar = u.avatar}).First();
+
+                var targetUser = Db.Queryable<Users>().Where(u => u.userId == c.MapTo<Comment>().TargetId).Select(u =>
+                    new CommentUserResponse {id = u.userId, nickName = u.userName, avatar = u.avatar}).First();
+                
                 yield return new CommentResponse
                 {
                     id = c.MapTo<Comment>().Id,
-                    parentId = c.MapTo<Comment>().ParentId,
-                    submitterId = c.MapTo<Comment>().SubmitterId,
+                    commentUser = commentUser,
+                    targetUser = targetUser,
                     content = c.MapTo<Comment>().Content,
                     createDate = c.MapTo<Comment>().CreateTime.ToString("yyyy-MM-dd HH:mm:ss"),
-                    childrenList = collection.GenerateVueCommentTree(idSelector, parentIdSelector, idSelector(c))
+                    childrenList = collection.GenerateVueCommentTree(idSelector, parentIdSelector, Db,idSelector(c)).ToList()
                 };
             }
         }

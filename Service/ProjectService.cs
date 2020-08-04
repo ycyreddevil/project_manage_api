@@ -222,13 +222,40 @@ namespace project_manage_api.Service
             return dict;
         }
 
-        public List<Comment> getProjectCommentById(int projectId)
+        /// <summary>
+        /// 通过id获取任务评论
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public List<CommentResponse> getProjectCommentById(int projectId)
         {
             var commentList = Db.Queryable<Comment>().Where(u => u.Type == 0 && u.DocId == projectId).ToList();
 
-            var commentResponseList = commentList.GenerateVueCommentTree(u => u.Id, u => u.ParentId);
-            
-            return null;
+            var commentResponseList = commentList.GenerateVueCommentTree(u => u.Id, u => u.ParentId, Db).ToList();
+
+            return commentResponseList;
+        }
+
+        /// <summary>
+        /// 新增项目评论
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public int addProjectComment(AddProjectCommentRequest request)
+        {
+            var comment = new Comment
+            {
+                Content = request.content,
+                Type = 0,
+                SubmitterId = user.UserId,
+                CreateTime = DateTime.Now,
+                DocId = request.projectId,
+                TargetId = request.targetUserId
+            };
+            if (request.parentId > 0)
+                comment.ParentId = request.parentId;
+            return Db.Insertable(comment).ExecuteCommand();
         }
     }
 }

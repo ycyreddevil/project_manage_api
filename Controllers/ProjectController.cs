@@ -229,5 +229,51 @@ namespace project_manage_api.Controllers
 
             return result;
         }
+        
+        /// <summary>
+        /// 通过id获取任务评论
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<CommentResponse>> getProjectCommentById(int projectId)
+        {
+            var result = new Response<List<CommentResponse>>();
+
+            try
+            {
+                result.Result = _service.getProjectCommentById(projectId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 通过id获取任务评论
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<int> addProjectComment(AddProjectCommentRequest request)
+        {
+            var result = new Response<int>();
+        
+            try
+            {
+                result.Result = _service.addProjectComment(request);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+        
+            return result;
+        }
     }
 }
