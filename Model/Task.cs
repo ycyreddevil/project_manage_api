@@ -80,12 +80,18 @@ namespace project_manage_api.Model
         /// 任务权重
         /// </summary>
         public System.Double Weight { get { return this._Weight; } set { this._Weight = value; } }
-
+        
         private System.String _TaskType;
         /// <summary>
         /// 任务类型
         /// </summary>
         public System.String TaskType { get { return this._TaskType; } set { this._TaskType = value; } }
+
+        private System.String _Progress;
+        /// <summary>
+        /// 任务进度
+        /// </summary>
+        public System.String Progress { get { return this._Progress; } set { this._Progress = value; } }
 
         private System.Int32? _Priority;
         /// <summary>

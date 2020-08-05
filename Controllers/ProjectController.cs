@@ -29,7 +29,7 @@ namespace project_manage_api.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public PageResponse<List<Project>> findProjects(QueryProjectRequest request)
+        public PageResponse<List<Project>> findProjects(QueryProjectOrTaskRequest request)
         {
             var result = new PageResponse<List<Project>>();
 
@@ -259,9 +259,9 @@ namespace project_manage_api.Controllers
         /// <param name="projectId"></param>
         /// <returns></returns>
         [HttpPost]
-        public Response<int> addProjectComment(AddProjectCommentRequest request)
+        public Response<CommentResponse> addProjectComment(AddProjectCommentRequest request)
         {
-            var result = new Response<int>();
+            var result = new Response<CommentResponse>();
         
             try
             {

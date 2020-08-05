@@ -34,7 +34,7 @@ namespace project_manage_api.Service
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public PageResponse<List<Project>> findProjects(QueryProjectRequest request)
+        public PageResponse<List<Project>> findProjects(QueryProjectOrTaskRequest request)
         {
             var total = 0;
 
@@ -229,7 +229,8 @@ namespace project_manage_api.Service
         /// <returns></returns>
         public List<CommentResponse> getProjectCommentById(int projectId)
         {
-            var commentList = Db.Queryable<Comment>().Where(u => u.Type == 0 && u.DocId == projectId).ToList();
+            var commentList = Db.Queryable<Comment>().Where(u => u.Type == 0 && u.DocId == projectId)
+                .OrderBy(u => u.CreateTime, OrderByType.Desc).ToList();
 
             var commentResponseList = commentList.GenerateVueCommentTree(u => u.Id, u => u.ParentId, Db).ToList();
 
@@ -242,7 +243,7 @@ namespace project_manage_api.Service
         /// <param name="content"></param>
         /// <param name="projectId"></param>
         /// <returns></returns>
-        public int addProjectComment(AddProjectCommentRequest request)
+        public CommentResponse addProjectComment(AddProjectCommentRequest request)
         {
             var comment = new Comment
             {
@@ -255,7 +256,25 @@ namespace project_manage_api.Service
             };
             if (request.parentId > 0)
                 comment.ParentId = request.parentId;
-            return Db.Insertable(comment).ExecuteCommand();
+            var returnId = Db.Insertable(comment).ExecuteCommand();
+
+            var commentUser = Db.Queryable<Users>().Where(u => u.userId == user.UserId).Select(u =>
+                new CommentUserResponse {id = u.userId, nickName = u.userName, avatar = u.avatar}).First();
+
+            var targetUser = Db.Queryable<Users>().Where(u => u.userId == request.targetUserId).Select(u =>
+                new CommentUserResponse {id = u.userId, nickName = u.userName, avatar = u.avatar}).First();
+
+            var commentResponse = new CommentResponse
+            {
+                id = returnId,
+                childrenList = null,
+                commentUser = commentUser,
+                targetUser = targetUser,
+                content = request.content,
+                createDate = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss")
+            };
+
+            return commentResponse;
         }
     }
 }
