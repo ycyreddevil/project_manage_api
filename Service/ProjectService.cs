@@ -43,7 +43,13 @@ namespace project_manage_api.Service
 
             if (!string.IsNullOrEmpty(request.type))
                 sugarQueryableList = sugarQueryableList.Where(u => u.Type == request.type);
+            
+            // 如果是管理员 才查看所有项目 否则查询自己负责或者自己提交的项目
+            var roleId = Db.Queryable<UserRole>().Where(u => u.UserId == user.UserId).Select(u => u.RoleId).First();
 
+            if (roleId != 1)
+                sugarQueryableList = sugarQueryableList.Where(u => u.ChargeUserId == user.UserId || u.SubmitterId == user.UserId);
+            
             var list = sugarQueryableList.OrderBy(u => request.sortColumn,
                     request.sortType == "asc" ? OrderByType.Asc : OrderByType.Desc)
                 .ToPageList(request.page, request.limit, ref total);

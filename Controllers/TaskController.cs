@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using project_manage_api.Infrastructure;
+using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
 using project_manage_api.Service;
 
@@ -24,13 +25,57 @@ namespace project_manage_api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        public Response<string> getTaskList(QueryProjectOrTaskRequest request)
+        public PageResponse<string> getTaskList(QueryProjectOrTaskRequest request)
         {
-            var result = new Response<string>();
+            var result = new PageResponse<string>();
 
             try
             {
-                result.Result = _service.getTaskList(request);
+                result = _service.getTaskList(request);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 开始任务
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response beginTask(int taskId)
+        {
+            var result = new Response();
+
+            try
+            {
+                _service.beginTask(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 结束任务
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response endTask(int taskId, int approverId)
+        {
+            var result = new Response();
+
+            try
+            {
+                _service.endTask(taskId, approverId);
             }
             catch (Exception ex)
             {

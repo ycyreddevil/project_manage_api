@@ -28,11 +28,11 @@ namespace project_manage_api.Model
         /// </summary>
         public System.Int32 TaskId { get { return this._TaskId; } set { this._TaskId = value; } }
 
-        private System.String _SubmitterId;
+        private System.Int32 _SubmitterId;
         /// <summary>
         /// 提交人id
         /// </summary>
-        public System.String SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
+        public System.Int32 SubmitterId { get { return this._SubmitterId; } set { this._SubmitterId = value; } }
         
         private System.String _SubmitterName;
         /// <summary>
@@ -69,17 +69,5 @@ namespace project_manage_api.Model
         /// 创建时间
         /// </summary>
         public System.DateTime CreateTime { get { return this._CreateTime; } set { this._CreateTime = value; } }
-
-        private System.DateTime? _StartTime;
-        /// <summary>
-        /// 开始时间
-        /// </summary>
-        public System.DateTime? StartTime { get { return this._StartTime; } set { this._StartTime = value; } }
-
-        private System.DateTime? _EndTime;
-        /// <summary>
-        /// 结束时间
-        /// </summary>
-        public System.DateTime? EndTime { get { return this._EndTime; } set { this._EndTime = value; } }
     }
 }
