@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
@@ -76,6 +77,50 @@ namespace project_manage_api.Controllers
             try
             {
                 _service.endTask(taskId, approverId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 结束任务
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response cancelTask(int taskId)
+        {
+            var result = new Response();
+
+            try
+            {
+                _service.cancelTask(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 前端展示子任务任务树
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Dictionary<string, object>> getChilrenTaskTree(int taskId)
+        {
+            var result = new Response<Dictionary<string, object>>();
+
+            try
+            {
+                result.Result = _service.getChilrenTaskTree(taskId);
             }
             catch (Exception ex)
             {

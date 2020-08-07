@@ -40,5 +40,27 @@ namespace project_manage_api.Controllers
 
             return result;
         }
+        
+        /// <summary>
+        /// 找到上级审批人
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<Users>> findApproverList()
+        {
+            var result = new Response<List<Users>>();
+
+            try
+            {
+                result.Result = _userService.findApproverList();
+            }
+            catch (Exception ex)
+            {
+                result.Code = 200;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
     }
 }

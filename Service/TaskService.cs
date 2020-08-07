@@ -45,7 +45,7 @@ namespace project_manage_api.Service
             var roleId = Db.Queryable<UserRole>().Where(u => u.UserId == user.UserId).Select(u => u.RoleId).First();
 
             if (roleId != 1)
-                query = query.Where(u => u.ChargeUserId == user.UserId || u.SubmitterId == user.UserId);
+                query = query.Where((t, p) => t.ChargeUserId == user.UserId || t.SubmitterId == user.UserId);
 
             var result = query.Select((t, p) => new
                 {
@@ -107,6 +107,57 @@ namespace project_manage_api.Service
             // 新增任务审批记录
             var record = new ApproveRecord{DocId = taskRecordId,ApproverId = user.UserId, Type = 1, Opinion = "",Result = "已提交"};
             Db.Insertable(record).ExecuteReturnIdentity();
+        }
+        
+        /// <summary>
+        /// 任务取消
+        /// </summary>
+        /// <param name="taskId"></param>
+        public void cancelTask(int taskId)
+        {
+            // 修改任务状态为 已取消
+            var task = SimpleDb.AsQueryable().Where(u => u.Id == taskId).First();
+            task.Status = 4;
+            SimpleDb.Update(task);
+
+            // 新增任务记录：开始任务
+            var taskRecord = new TaskRecord
+            {
+                Status = 1,
+                CreateTime = DateTime.Now,
+                Desc = "任务取消",
+                SubmitterId = user.UserId,
+                SubmitterName = user.UserName,
+                TaskId = taskId
+            };
+            Db.Insertable(taskRecord).ExecuteCommand();
+        }
+        
+        /// <summary>
+        /// 前端展示子任务任务树
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public Dictionary<string, object> getChilrenTaskTree(int taskId)
+        {
+            var treeList = new List<Task>();
+
+            // 查询到选中任务的子任务
+            var task = Db.Queryable<Task>().Where(u => u.Id == taskId).First();
+
+            var project = Db.Queryable<Project>().Where(u => u.Id == task.Id).First();
+            var list = Db.Queryable<Task>().Where(u => u.CascadeId.Contains(task.CascadeId)).ToList();
+            treeList.AddRange(list);
+
+            var taskTree = treeList.GenerateVueTaskTree(u => u.Id, u => u.ParentId);
+
+            // 处理返回tree 添加根节点 根节点名称为选中任务本身
+            var result = new Dictionary<string, object>
+            {
+                {"id", project.Id}, {"label", project.Name}, {"children", taskTree}, {"chargeUserName", project.ChargeUserName},{"status", "已审批"}
+            };
+
+            return result;
         }
     }
 }
