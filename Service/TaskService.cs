@@ -145,7 +145,7 @@ namespace project_manage_api.Service
             // 查询到选中任务的子任务
             var task = Db.Queryable<Task>().Where(u => u.Id == taskId).First();
 
-            var project = Db.Queryable<Project>().Where(u => u.Id == task.Id).First();
+            var project = Db.Queryable<Project>().Where(u => u.Id == task.ProjectId).First();
             var list = Db.Queryable<Task>().Where(u => u.CascadeId.Contains(task.CascadeId)).ToList();
             treeList.AddRange(list);
 
@@ -154,7 +154,7 @@ namespace project_manage_api.Service
             // 处理返回tree 添加根节点 根节点名称为选中任务本身
             var result = new Dictionary<string, object>
             {
-                {"id", project.Id}, {"label", project.Name}, {"children", taskTree}, {"chargeUserName", project.ChargeUserName},{"status", "已审批"}
+                {"id", project.Id}, {"label", project.Name}, {"children", taskTree}, {"chargeUserName", project.ChargeUserName},{"status", 0}
             };
 
             return result;

@@ -179,7 +179,7 @@ namespace project_manage_api.Service
             var result = new Dictionary<string, object>
             {
                 {"id", 0}, {"label", project.Name}, {"children", taskTree}, {"chargeUserName", project.ChargeUserName},
-                {"status", "已审批"}
+                {"status", 0}
             };
 
             return result;
