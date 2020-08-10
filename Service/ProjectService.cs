@@ -205,7 +205,7 @@ namespace project_manage_api.Service
             var dateQuery = Db.Queryable<TaskRecord, Task, Project>((tr, t, p) => new object[]
             {
                 JoinType.Left, tr.TaskId == t.Id, JoinType.Left, t.ProjectId == p.Id
-            }).Where((tr, t, p) => t.ProjectId == request.projectId && tr.Status == 1);
+            }).Where((tr, t, p) => t.ProjectId == request.projectOrTaskId && tr.Status == 1);
 
             if (!string.IsNullOrEmpty(request.startTime) && !string.IsNullOrEmpty(request.endTime))
                 dateQuery = dateQuery.Where((tr, t, p) =>
@@ -226,6 +226,22 @@ namespace project_manage_api.Service
             }
 
             return dict;
+        }
+
+        /// <summary>
+        /// 获取最新的5条任务记录
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public List<TaskRecord> getLatestTaskRecordByProjectId(int projectId)
+        {
+            var list = Db.Queryable<TaskRecord, Task, Project>((tr, t, p) => new object[]
+            {
+                JoinType.Left, tr.TaskId == t.Id, JoinType.Left, t.ProjectId == p.Id
+            }).Where((tr, t, p) => t.ProjectId == projectId && tr.Status == 1).
+                OrderBy((tr, t, p) => tr.CreateTime, OrderByType.Desc).Select<TaskRecord>().Take(6).ToList();
+
+            return list;
         }
 
         /// <summary>

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
+using project_manage_api.Model.RequestModel;
 using SqlSugar;
 
 namespace project_manage_api.Service
@@ -158,6 +160,170 @@ namespace project_manage_api.Service
             };
 
             return result;
+        }
+
+        /// <summary>
+        /// 通过id获取task
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <returns></returns>
+        public Task getTaskById(int taskId)
+        {
+            return SimpleDb.GetSingle(u => u.Id == taskId);
+        }
+        
+        /// <summary>
+        /// 获取项目动态 提交情况
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public Dictionary<string, object> getTaskRecordByTaskId(QueryTaskRecordRequest request)
+        {
+            var dateQuery = Db.Queryable<TaskRecord, Task>((tr, t) => new object[]
+            {
+                JoinType.Left, tr.TaskId == t.Id
+            }).Where((tr, t) => t.Id == request.projectOrTaskId && tr.Status == 1);
+
+            if (!string.IsNullOrEmpty(request.startTime) && !string.IsNullOrEmpty(request.endTime))
+                dateQuery = dateQuery.Where((tr, t) =>
+                    SqlFunc.Between(tr.CreateTime, request.startTime, request.endTime));
+
+            var dateList = dateQuery.GroupBy((tr, t) => SqlFunc.DateValue(tr.CreateTime, DateType.Year) + "-" +
+                                                           SqlFunc.DateValue(tr.CreateTime, DateType.Month) + "-" +
+                                                           SqlFunc.DateValue(tr.CreateTime, DateType.Day))
+                .OrderBy((tr, t) => tr.CreateTime)
+                .Select((tr, t) => tr.CreateTime).ToList();
+
+            var dict = new Dictionary<string, object>();
+            foreach (var date in dateList)
+            {
+                var taskRecordList = Db.Queryable<TaskRecord>().Where(u => SqlFunc.DateIsSame(date, u.CreateTime))
+                    .ToList();
+                dict.Add(date.ToString("yyyy-MM-dd"), taskRecordList);
+            }
+
+            return dict;
+        }
+
+        /// <summary>
+        /// 通过id获取任务评论
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public List<CommentResponse> getTaskCommentById(int taskId)
+        {
+            var commentList = Db.Queryable<Comment>().Where(u => u.Type == 1 && u.DocId == taskId)
+                .OrderBy(u => u.CreateTime, OrderByType.Desc).ToList();
+
+            var commentResponseList = commentList.GenerateVueCommentTree(u => u.Id, u => u.ParentId, Db).ToList();
+
+            return commentResponseList;
+        }
+        
+        /// <summary>
+        /// 新增项目评论
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public CommentResponse addTaskComment(AddTaskCommentRequest request)
+        {
+            var comment = new Comment
+            {
+                Content = request.content,
+                Type = 1,
+                SubmitterId = user.UserId,
+                CreateTime = DateTime.Now,
+                DocId = request.taskId,
+                TargetId = request.targetUserId
+            };
+            if (request.parentId > 0)
+                comment.ParentId = request.parentId;
+            var returnId = Db.Insertable(comment).ExecuteCommand();
+
+            var commentUser = Db.Queryable<Users>().Where(u => u.userId == user.UserId).Select(u =>
+                new CommentUserResponse {id = u.userId, nickName = u.userName, avatar = u.avatar}).First();
+
+            var targetUser = Db.Queryable<Users>().Where(u => u.userId == request.targetUserId).Select(u =>
+                new CommentUserResponse {id = u.userId, nickName = u.userName, avatar = u.avatar}).First();
+
+            var commentResponse = new CommentResponse
+            {
+                id = returnId,
+                childrenList = null,
+                commentUser = commentUser,
+                targetUser = targetUser,
+                content = request.content,
+                createDate = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss")
+            };
+
+            return commentResponse;
+        }
+        
+        /// <summary>
+        /// 获取最新的5条任务记录
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public List<TaskRecord> getLatestTaskRecordByTaskId(int taskId)
+        {
+            var list = Db.Queryable<TaskRecord, Task>((tr, t) => new object[]
+                {
+                    JoinType.Left, tr.TaskId == t.Id
+                }).Where((tr, t) => tr.TaskId == taskId && tr.Status == 1).
+                OrderBy((tr, t) => tr.CreateTime, OrderByType.Desc).Select<TaskRecord>().Take(6).ToList();
+
+            return list;
+        }
+        
+        /// <summary>
+        /// 创建或更新任务
+        /// </summary>
+        /// <param name="request"></param>
+        public Task addOrUpdateTask(Task task)
+        {
+            task.CreateTime = DateTime.Now;
+            task.SubmitterId = user.UserId;
+            task.SubmitterName = user.UserName;
+            ChangeModuleCascade(task);
+
+            return Db.Saveable(task).ExecuteReturnEntity();
+        }
+        
+        /// <summary>
+        /// 如果一个类有层级结构（树状），则修改该节点时，要修改该节点的所有子节点
+        /// //修改对象的级联ID，生成类似XXX.XXX.X.XX
+        /// </summary>
+        /// <param name="task"></param>
+        private void ChangeModuleCascade(Task task)
+        {
+            string cascadeId;
+            var currentCascadeId = 1; //当前结点的级联节点最后一位
+            var sameLevels = SimpleDb.AsQueryable().Where(u => u.ParentId == task.ParentId && u.Id != task.Id).ToList();
+            foreach (var obj in sameLevels)
+            {
+                var objCascadeId = int.Parse(obj.CascadeId.TrimEnd('.').Split('.').Last());
+                if (currentCascadeId <= objCascadeId) currentCascadeId = objCascadeId + 1;
+            }
+
+            if (task.ParentId > 0)
+            {
+                var parenntTask = SimpleDb.GetSingle(u => u.Id == task.ParentId); 
+                if (parenntTask != null)
+                {
+                    cascadeId = parenntTask.CascadeId + currentCascadeId + ".";
+                }
+                else
+                {
+                    throw new Exception("未能找到该组织的父节点信息");
+                }
+            }
+            else
+            {
+                cascadeId = ".0." + currentCascadeId + ".";
+            }
+
+            task.CascadeId = cascadeId;
         }
     }
 }

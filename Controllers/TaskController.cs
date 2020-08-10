@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
+using project_manage_api.Model.RequestModel;
 using project_manage_api.Service;
 
 namespace project_manage_api.Controllers
@@ -121,6 +122,140 @@ namespace project_manage_api.Controllers
             try
             {
                 result.Result = _service.getChilrenTaskTree(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 通过id获取task
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Task> getTaskById(int taskId)
+        {
+            var result = new Response<Task>();
+
+            try
+            {
+                result.Result = _service.getTaskById(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取项目动态 提交情况
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Dictionary<string, object>> getTaskRecordByTaskId(QueryTaskRecordRequest request)
+        {
+            var result = new Response<Dictionary<string, object>>();
+
+            try
+            {
+                result.Result = _service.getTaskRecordByTaskId(request);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 通过id获取任务评论
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<CommentResponse>> getTaskCommentById(int taskId)
+        {
+            var result = new Response<List<CommentResponse>>();
+
+            try
+            {
+                result.Result = _service.getTaskCommentById(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取项目动态 提交情况
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<CommentResponse> addTaskComment(AddTaskCommentRequest request)
+        {
+            var result = new Response<CommentResponse>();
+
+            try
+            {
+                result.Result = _service.addTaskComment(request);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取最新的5条任务记录
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<TaskRecord>> getLatestTaskRecordByTaskId(int taskId)
+        {
+            var result = new Response<List<TaskRecord>>();
+
+            try
+            {
+                result.Result = _service.getLatestTaskRecordByTaskId(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 创建或更新任务
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<Task> addOrUpdateTask(Task task)
+        {
+            var result = new Response<Task>();
+
+            try
+            {
+                result.Result = _service.addOrUpdateTask(task);
             }
             catch (Exception ex)
             {

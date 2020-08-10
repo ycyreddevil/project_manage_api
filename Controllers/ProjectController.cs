@@ -187,7 +187,7 @@ namespace project_manage_api.Controllers
         /// <summary>
         /// 通过id获取task
         /// </summary>
-        /// <param name="projectId"></param>
+        /// <param name="taskId"></param>
         /// <returns></returns>
         [HttpPost]
         public Response<Task> getTaskById(int taskId)
@@ -208,7 +208,7 @@ namespace project_manage_api.Controllers
         }
         
         /// <summary>
-        /// 通过id获取task
+        /// 通过id获取任务记录
         /// </summary>
         /// <param name="projectId"></param>
         /// <returns></returns>
@@ -220,6 +220,29 @@ namespace project_manage_api.Controllers
             try
             {
                 result.Result = _service.getTaskRecordByProjectId(request);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取最新的5条任务记录
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<TaskRecord>> getLatestTaskRecordByProjectId(int projectId)
+        {
+            var result = new Response<List<TaskRecord>>();
+
+            try
+            {
+                result.Result = _service.getLatestTaskRecordByProjectId(projectId);
             }
             catch (Exception ex)
             {
