@@ -265,5 +265,51 @@ namespace project_manage_api.Controllers
 
             return result;
         }
+        
+        /// <summary>
+        /// 创建或更新任务
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response deleteTask(int taskId)
+        {
+            var result = new Response();
+
+            try
+            {
+                _service.deleteTask(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+        
+        /// <summary>
+        /// 创建或更新任务
+        /// </summary>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<TaskRecord> addOrUpdateTaskRecord(TaskRecord record)
+        {
+            var result = new Response<TaskRecord>();
+
+            try
+            {
+                result.Result = _service.addOrUpdateTaskRecord(record);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
     }
 }

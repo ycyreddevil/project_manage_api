@@ -36,24 +36,25 @@ namespace project_manage_api.Service
             var query = Db.Queryable<Task, Project>((t, p) => new object[]
                 {
                     JoinType.Left, t.ProjectId == p.Id
-                }).Where((t, p) =>
-                    t.ChargeUserId == user.UserId && t.TaskName.Contains(request.key) &&
-                    SqlFunc.Between(t.CreateTime, request.startTime, request.endTime));
+                }).Where((t, p) => t.TaskName.Contains(request.key));
 
+            if (SqlFunc.HasValue(request.startTime) && SqlFunc.HasValue(request.endTime))
+                query = query.Where((t, p) => SqlFunc.Between(t.CreateTime, request.startTime, request.endTime));
+            
             if (SqlFunc.HasValue(request.type))
                 query = query.Where((t, p) => t.Status == int.Parse(request.type));
             
-            // 如果是管理员 才查看所有项目 否则查询自己负责或者自己提交的项目
+            // 如果是管理员 才查看所有任务 否则查询自己负责或者自己提交的
             var roleId = Db.Queryable<UserRole>().Where(u => u.UserId == user.UserId).Select(u => u.RoleId).First();
 
             if (roleId != 1)
-                query = query.Where((t, p) => t.ChargeUserId == user.UserId || t.SubmitterId == user.UserId);
+                query = query.Where((t, p) => t.ChargeUserId == user.UserId || t.SubmitterId == user.UserId || p.ChargeUserId == user.UserId);
 
             var result = query.Select((t, p) => new
                 {
                     id = t.Id, projectId = t.ProjectId, taskName = t.TaskName, weight = t.Weight, progress = t.Progress,
                     status = t.Status, priority = t.Priority, startTime = t.StartTime, endTime = t.EndTime,
-                    submitterName = t.SubmitterName, projectName = p.Name
+                    submitterName = t.SubmitterName, projectName = p.Name, chargeUserName = t.ChargeUserName
                 });
 
             var json = result.ToPageList(request.page, request.limit, ref total).ToJson();
@@ -151,7 +152,7 @@ namespace project_manage_api.Service
             var list = Db.Queryable<Task>().Where(u => u.CascadeId.Contains(task.CascadeId)).ToList();
             treeList.AddRange(list);
 
-            var taskTree = treeList.GenerateVueTaskTree(u => u.Id, u => u.ParentId);
+            var taskTree = treeList.GenerateVueTaskTree(u => u.Id, u => u.ParentId, task.ParentId);
 
             // 处理返回tree 添加根节点 根节点名称为选中任务本身
             var result = new Dictionary<string, object>
@@ -285,6 +286,7 @@ namespace project_manage_api.Service
             task.CreateTime = DateTime.Now;
             task.SubmitterId = user.UserId;
             task.SubmitterName = user.UserName;
+            task.Progress = "0%";
             ChangeModuleCascade(task);
 
             return Db.Saveable(task).ExecuteReturnEntity();
@@ -324,6 +326,30 @@ namespace project_manage_api.Service
             }
 
             task.CascadeId = cascadeId;
+        }
+
+        /// <summary>
+        /// 任务删除
+        /// </summary>
+        /// <param name="taskId"></param>
+        public void deleteTask(int taskId)
+        {
+            SimpleDb.DeleteById(taskId);
+            Db.Deleteable<TaskRecord>().Where(u => u.TaskId == taskId);
+        }
+
+        /// <summary>
+        /// 任务完成情况提交
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
+        public TaskRecord addOrUpdateTaskRecord(TaskRecord record)
+        {
+            record.SubmitterId = user.UserId;
+            record.SubmitterName = user.UserName;
+            record.CreateTime = DateTime.Now;
+
+            return Db.Saveable(record).ExecuteReturnEntity();
         }
     }
 }
