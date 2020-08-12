@@ -85,8 +85,8 @@ namespace project_manage_api
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), @"Image")),
-                RequestPath = new PathString("/Image")
+                    Path.Combine(Directory.GetCurrentDirectory(), @"UploadFile")),
+                RequestPath = new PathString("/UploadFile")
             });
 
             app.UseSession();

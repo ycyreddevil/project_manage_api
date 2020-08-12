@@ -87,11 +87,11 @@ namespace project_manage_api.Model
         /// </summary>
         public System.String TaskType { get { return this._TaskType; } set { this._TaskType = value; } }
 
-        private System.String _Progress;
+        private System.Int32 _Progress;
         /// <summary>
         /// 任务进度
         /// </summary>
-        public System.String Progress { get { return this._Progress; } set { this._Progress = value; } }
+        public System.Int32 Progress { get { return this._Progress; } set { this._Progress = value; } }
 
         private System.Int32? _Priority;
         /// <summary>

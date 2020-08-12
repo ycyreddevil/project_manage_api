@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Org.BouncyCastle.Utilities;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
 using project_manage_api.Model.QueryModel;
@@ -98,12 +100,13 @@ namespace project_manage_api.Service
             var taskRecord = new TaskRecord{Status = 0,CreateTime = DateTime.Now,Desc = "任务完成",SubmitterId = user.UserId,SubmitterName = user.UserName,TaskId = taskId};
             var taskRecordId = Db.Insertable(taskRecord).ExecuteReturnIdentity();
             
-            // 新增任务审批记录
+            // 新增任务审批人列表
             var approverList = new List<ApproveApprover>();
             var submitter = new ApproveApprover {DocId = taskRecordId, ApproverId = user.UserId, Type = 1, Level = 0};
             approverList.Add(submitter);
             
-            var approver = new ApproveApprover {DocId = taskRecordId, ApproverId = approverId, Type = 1, Level = 1};
+            var superiorUserId = getTaskSuperior(taskId, user);    // 获取上级任务负责人
+            var approver = new ApproveApprover {DocId = taskRecordId, ApproverId = superiorUserId, Type = 1, Level = 1};
             approverList.Add(approver);
             Db.Insertable(approverList).ExecuteReturnIdentity();
             
@@ -198,8 +201,8 @@ namespace project_manage_api.Service
             var dict = new Dictionary<string, object>();
             foreach (var date in dateList)
             {
-                var taskRecordList = Db.Queryable<TaskRecord>().Where(u => SqlFunc.DateIsSame(date, u.CreateTime))
-                    .ToList();
+                var taskRecordList = Db.Queryable<TaskRecord>().Where(u => SqlFunc.DateIsSame(date, u.CreateTime) 
+                     && u.TaskId == request.projectOrTaskId && u.Status == 1).ToList();
                 dict.Add(date.ToString("yyyy-MM-dd"), taskRecordList);
             }
 
@@ -283,10 +286,24 @@ namespace project_manage_api.Service
         /// <param name="request"></param>
         public Task addOrUpdateTask(Task task)
         {
+            // 如果存在父节点任务 则判断时间范围要在父节点任务的时间范围内 如果没有父节点任务 则判断时间范围要在项目的时间范围内
+            if (task.ParentId == 0)
+            {
+                var project = Db.Queryable<Project>().Where(u => u.Id == task.ProjectId).Single();
+                if (project.StartTime > task.StartTime || project.EndTime < task.EndTime)
+                    throw new Exception("该任务的时间范围必须包含在所属项目的时间范围内");
+            }
+            else
+            {
+                var parentTask = SimpleDb.AsQueryable().Where(u => u.Id == task.ParentId).First();
+                if (parentTask.StartTime > task.StartTime || parentTask.EndTime < task.EndTime)
+                    throw new Exception("该任务的时间范围必须包含在上级任务的时间范围内");
+            }
+            
             task.CreateTime = DateTime.Now;
             task.SubmitterId = user.UserId;
             task.SubmitterName = user.UserName;
-            task.Progress = "0%";
+            task.Progress = 0;
             ChangeModuleCascade(task);
 
             return Db.Saveable(task).ExecuteReturnEntity();
@@ -348,8 +365,80 @@ namespace project_manage_api.Service
             record.SubmitterId = user.UserId;
             record.SubmitterName = user.UserName;
             record.CreateTime = DateTime.Now;
+            
+            Db.Ado.BeginTran();
+            
+            // 更新task的进度
+            var task = Db.Queryable<Task>().Where(u => u.Id == record.TaskId).Single();
 
-            return Db.Saveable(record).ExecuteReturnEntity();
+            if (task.Progress + record.Percent > 100)
+                throw new Exception($"该任务已经完成{task.Progress}%,无法提交占比{record.Percent}%的完成情况！");
+
+            task.Progress += record.Percent;
+            Db.Updateable(task).ExecuteCommand();
+            
+            var returnReocrd = Db.Saveable(record).ExecuteReturnEntity();
+            
+            // 新增任务审批记录
+            var approverList = new List<ApproveApprover>();
+            var submitter = new ApproveApprover {DocId = returnReocrd.Id, ApproverId = user.UserId, Type = 2, Level = 0};
+            approverList.Add(submitter);
+
+            try
+            {
+                var superiorUserId = getTaskSuperior(record.TaskId, user);
+            
+                var approver = new ApproveApprover {DocId = returnReocrd.Id, ApproverId = superiorUserId, Type = 2, Level = 1};
+                approverList.Add(approver);
+                Db.Insertable(approverList).ExecuteReturnIdentity();
+            
+                // 新增任务审批记录
+                var approveRecord = new ApproveRecord{DocId = returnReocrd.Id,ApproverId = user.UserId, Type = 2, Opinion = "",Result = "已提交"};
+                Db.Insertable(approveRecord).ExecuteReturnIdentity();
+                
+                Db.Ado.CommitTran();
+            }
+            catch (Exception ex)
+            {
+                Db.Ado.RollbackTran();
+                
+                task.Progress -= record.Percent;
+                Db.Updateable(task).ExecuteCommand();
+                
+                throw new Exception(ex.Message);
+            }
+
+            return returnReocrd;
+        }
+
+        /// <summary>
+        /// 找到上级任务负责人 如果上级是自己则继续向上找 直到找到非自己为止
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <param name="user"></param>
+        /// <returns>返回找到负责人的userId</returns>
+        public int getTaskSuperior(int taskId, UserAuthSession user)
+        {
+            var task = SimpleDb.GetSingle(u => u.Id == taskId);
+
+            if (task.ChargeUserId != user.UserId)
+                throw new Exception("您与选中任务无关联，无法提交");
+            
+            while (true)
+            {
+                task = SimpleDb.GetSingle(u => u.Id == task.ParentId);
+
+                if (task == null)
+                    break;
+
+                if (task.ChargeUserId != user.UserId)
+                    break;
+            }
+            
+            if (task == null)
+                throw new Exception("暂无可用上级，请联系管理员重新分配");
+
+            return task.ChargeUserId;
         }
     }
 }

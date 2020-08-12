@@ -58,11 +58,11 @@ namespace project_manage_api.Model
         /// </summary>
         public System.SByte Status { get { return this._Status; } set { this._Status = value; } }
 
-        private System.String _Opinion;
+        private System.Int32 _Percent;
         /// <summary>
         /// 审批意见
         /// </summary>
-        public System.String Opinion { get { return this._Opinion; } set { this._Opinion = value; } }
+        public System.Int32 Percent { get { return this._Percent; } set { this._Percent = value; } }
 
         private System.DateTime _CreateTime;
         /// <summary>

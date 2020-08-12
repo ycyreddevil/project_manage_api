@@ -6,10 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Image" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Autofac" Version="5.2.0" />
       <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
       <PackageReference Include="Autofac.Extras.DynamicProxy" Version="5.0.0" />
@@ -24,6 +20,10 @@
       <PackageReference Include="sqlSugarCore" Version="5.0.0.15" />
       <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
       <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.5.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Image" />
     </ItemGroup>
 
 

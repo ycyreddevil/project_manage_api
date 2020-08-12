@@ -26,10 +26,10 @@ namespace project_manage_api.Controllers
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public Response<string> fileUpload([FromForm]IFormFile formFile)
+        public Response<string> fileUpload([FromForm]IFormFile file)
         {
             var currentDate = DateTime.Now;
-            var webRootPath = _hostingEnvironment.WebRootPath;
+            var webRootPath = _hostingEnvironment.ContentRootPath;
 
             try
             {
@@ -39,24 +39,24 @@ namespace project_manage_api.Controllers
                 if (!Directory.Exists(webRootPath + filePath))
                     Directory.CreateDirectory(webRootPath + filePath);
 
-                if (formFile != null)
+                if (file != null)
                 {
                     //文件后缀
-                    var fileExtension = Path.GetExtension(formFile.FileName);//获取文件格式，拓展名
+                    var fileExtension = Path.GetExtension(file.FileName);//获取文件格式，拓展名
 
                     //判断文件大小
-                    var fileSize = formFile.Length;
+                    var fileSize = file.Length;
 
                     if (fileSize > 1024 * 1024 * 10) //最大限制10M
                         return new Response<string> { Code = 500, Message = "上传的文件不能大于10M！" };
 
                     //保存的文件名称(以名称和保存时间命名)
-                    var saveName = formFile.FileName.Substring(0, formFile.FileName.LastIndexOf('.')) + "_" + currentDate.ToString("HHmmss") + fileExtension;
+                    var saveName = file.FileName.Substring(0, file.FileName.LastIndexOf('.')) + "_" + currentDate.ToString("HHmmss") + fileExtension;
 
                     //文件保存
                     using (var fs = System.IO.File.Create(webRootPath + filePath + saveName))
                     {
-                        formFile.CopyTo(fs);
+                        file.CopyTo(fs);
                         fs.Flush();
                     }
 
