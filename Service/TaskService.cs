@@ -440,5 +440,25 @@ namespace project_manage_api.Service
 
             return task.ChargeUserId;
         }
+
+        /// <summary>
+        /// 找出同级别任务的占比 来进行百分百分配
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <returns></returns>
+        public List<Task> getSameLevelTask(int taskId)
+        {
+            var task = SimpleDb.GetSingle(u => u.Id == taskId);
+            return SimpleDb.AsQueryable().Where(u => u.ParentId == task.ParentId).ToList();
+        }
+
+        /// <summary>
+        /// 批量更新任务占比
+        /// </summary>
+        /// <param name="list"></param>
+        public void updateTaskWeight(List<Task> list)
+        {
+            SimpleDb.UpdateRange(list);
+        }
     }
 }

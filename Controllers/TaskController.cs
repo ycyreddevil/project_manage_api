@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using project_manage_api.Infrastructure;
 using project_manage_api.Model;
@@ -302,6 +303,52 @@ namespace project_manage_api.Controllers
             try
             {
                 result.Result = _service.addOrUpdateTaskRecord(record);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 找出同级别任务的占比 来进行百分百分配
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<Task>> getSameLevelTask(int taskId)
+        {
+            var result = new Response<List<Task>>();
+
+            try
+            {
+                result.Result = _service.getSameLevelTask(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 批量更新任务权重
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Response updateTaskWeight(string list)
+        {
+            var result = new Response();
+
+            try
+            {
+                _service.updateTaskWeight(list.ToList<Task>());
             }
             catch (Exception ex)
             {
