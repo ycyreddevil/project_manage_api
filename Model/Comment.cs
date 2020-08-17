@@ -51,6 +51,11 @@ namespace project_manage_api.Model
         /// </summary>
         public System.Int32 TargetId { get { return this._TargetId; } set { this._TargetId = value; } }
         
+        private System.Int32 _HaveRead;
+        /// <summary>
+        /// 是否已读
+        /// </summary>
+        public System.Int32 HaveRead { get { return this._HaveRead; } set { this._HaveRead = value; } }
 
         private System.String _Content;
         /// <summary>
