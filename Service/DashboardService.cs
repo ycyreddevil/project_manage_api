@@ -137,6 +137,10 @@ namespace project_manage_api.Service
             Db.Deleteable<Schedule>().Where(new Schedule() { Id = id }).ExecuteCommand();
         }
 
+        /// <summary>
+        /// 首页工作台 项目提交情况统计
+        /// </summary>
+        /// <returns></returns>
         public string getSubmissionStatus()
         {
             var sugarQueryableList = Db.Queryable<Project>();
@@ -146,6 +150,27 @@ namespace project_manage_api.Service
 
             if (roleId != 1)
                 sugarQueryableList = sugarQueryableList.Where(u => u.ChargeUserId == user.UserId || u.SubmitterId == user.UserId);
+
+            var projectList = sugarQueryableList.ToList();
+
+            foreach (var project in projectList)
+            {
+                var list = new List<int>();
+                for (var i = 0; i < 7; i++)
+                {
+                    var time = DateTime.Now.AddDays(i - Convert.ToInt16(DateTime.Now.DayOfWeek) + 1);
+
+                    var taskRecordList = Db.Queryable<TaskRecord, Task, Project>((tr, t, p) => new object[]
+                        {tr.TaskId == t.Id, JoinType.Left, t.ProjectId == p.Id, JoinType.Left }
+                    ).Where((tr, t, p) => SqlFunc.DateIsSame(tr.CreateTime, time) && p.Id == project.Id).ToList();
+
+                    double ratio = 0.0;
+                    foreach (var taskRecord in taskRecordList)
+                    {
+                        ratio += taskRecord.Percent;
+                    }
+                }
+            }
             
             return null;
         }
