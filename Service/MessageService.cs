@@ -36,8 +36,6 @@ namespace project_manage_api.Service
                 JoinType.Left, c.SubmitterId == u1.userId, JoinType.Left, c.TargetId == u2.userId
             }).Where((c, u1, u2) => c.Content.Contains(request.key) && c.Type == request.type && c.TargetId == user.UserId
              && SqlFunc.Subqueryable<Comment>().Where(u => u.ParentId == c.Id).Count() == 0);
-
-            query.ToSql();
             
             if (!string.IsNullOrEmpty(request.startTime) && !string.IsNullOrEmpty(request.endTime))
                 query = query.Where((c, u1, u2) => SqlFunc.Between(c.CreateTime, request.startTime, request.endTime));
