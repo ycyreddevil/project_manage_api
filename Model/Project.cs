@@ -39,17 +39,17 @@ namespace project_manage_api.Model
         /// </summary>
         public System.String Type { get { return this._Type; } set { this._Type = value; } }
 
-        private System.DateTime? _StartTime;
+        private System.DateTime _StartTime;
         /// <summary>
         /// 项目开始时间
         /// </summary>
-        public System.DateTime? StartTime { get { return this._StartTime; } set { this._StartTime = value; } }
+        public System.DateTime StartTime { get { return this._StartTime; } set { this._StartTime = value; } }
 
-        private System.DateTime? _EndTime;
+        private System.DateTime _EndTime;
         /// <summary>
         /// 项目结束时间
         /// </summary>
-        public System.DateTime? EndTime { get { return this._EndTime; } set { this._EndTime = value; } }
+        public System.DateTime EndTime { get { return this._EndTime; } set { this._EndTime = value; } }
 
         private System.String _TeamName;
         /// <summary>

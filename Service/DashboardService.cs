@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoMapper.Mappers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using project_manage_api.Infrastructure;
@@ -82,7 +83,9 @@ namespace project_manage_api.Service
                 var complete_ratio = rootTask.Sum(item => item.Progress * item.Weight * 0.01);
                 
                 // 获取项目耗时 从项目开始时间到现在
-                var day = (DateTime.Now - project.StartTime).Value.Days;
+                var day = (DateTime.Now - project.StartTime).Days;
+                // 获取项目预计耗时
+                var estimate = (project.EndTime - project.StartTime).Days;
                 
                 // 获取项目的总任务数
                 var task_num = Db.Queryable<Task>().Where(u => u.ProjectId == project.Id).Count();
@@ -93,6 +96,7 @@ namespace project_manage_api.Service
                     {"code", project.Code},
                     {"complete_ratio", complete_ratio},
                     {"day", day},
+                    {"estimate", estimate},
                     {"task_num", task_num}
                 };
 
@@ -141,7 +145,7 @@ namespace project_manage_api.Service
         /// 首页工作台 项目提交情况统计
         /// </summary>
         /// <returns></returns>
-        public string getSubmissionStatus()
+        public List<Dictionary<string, object>> getSubmissionStatus()
         {
             var sugarQueryableList = Db.Queryable<Project>();
             
@@ -153,26 +157,141 @@ namespace project_manage_api.Service
 
             var projectList = sugarQueryableList.ToList();
 
+            var result = new List<Dictionary<string, object>>();
             foreach (var project in projectList)
             {
-                var list = new List<int>();
+                var dict = new Dictionary<string, object>();
+                var list = new List<double>();
+                // 统计当前星期的提交情况
                 for (var i = 0; i < 7; i++)
                 {
                     var time = DateTime.Now.AddDays(i - Convert.ToInt16(DateTime.Now.DayOfWeek) + 1);
 
                     var taskRecordList = Db.Queryable<TaskRecord, Task, Project>((tr, t, p) => new object[]
-                        {tr.TaskId == t.Id, JoinType.Left, t.ProjectId == p.Id, JoinType.Left }
-                    ).Where((tr, t, p) => SqlFunc.DateIsSame(tr.CreateTime, time) && p.Id == project.Id).ToList();
+                        {JoinType.Left, tr.TaskId == t.Id, JoinType.Left, t.ProjectId == p.Id }
+                    ).Where((tr, t, p) => SqlFunc.DateIsSame(tr.CreateTime, time) && p.Id == project.Id)
+                    .Select((tr, t, p) => new{ percent = tr.Percent,weight = t.Weight }).ToList();
 
-                    double ratio = 0.0;
+                    var ratio = 0.0;
                     foreach (var taskRecord in taskRecordList)
                     {
-                        ratio += taskRecord.Percent;
+                        ratio += taskRecord.percent * taskRecord.weight * 0.01;
                     }
+                    list.Add(ratio);
                 }
+
+                dict.Add("list", list);
+                dict.Add("name", project.Name);
+                result.Add(dict);
             }
             
-            return null;
+            return result;
+        }
+
+        /// <summary>
+        /// 首页工作台 项目任务占比
+        /// </summary>
+        /// <returns></returns>
+        public List<Dictionary<string, object>> getProjectTaskRatio()
+        {
+            var sugarQueryableList = Db.Queryable<Project>();
+            
+            // 如果是管理员 才查看所有项目 否则查询自己负责或者自己提交的项目
+            var roleId = Db.Queryable<UserRole>().Where(u => u.UserId == user.UserId).Select(u => u.RoleId).First();
+
+            if (roleId != 1)
+                sugarQueryableList = sugarQueryableList.Where(u => u.ChargeUserId == user.UserId || u.SubmitterId == user.UserId);
+
+            var projectList = sugarQueryableList.ToList();
+            var result = new List<Dictionary<string, object>>();
+
+            foreach (var project in projectList)
+            {
+                var taskNum = Db.Queryable<Task>().Where(u => u.ProjectId == project.Id).Count();
+                var dict = new Dictionary<string, object> {{"name", project.Name}, {"value", taskNum}};
+                result.Add(dict);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 获取项目燃尽图数据
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public List<Dictionary<string, object>> getProjectBurndownChart(int projectId)
+        {
+            var project = Db.Queryable<Project>().Where(u => u.Id == projectId).Single();
+
+            var startDate = project.StartTime;
+            var endDate = project.EndTime;
+            
+            var tempDate = project.StartTime;
+            var result = new List<Dictionary<string, object>>();
+            var remain = 100.0;
+
+            while (tempDate <= endDate && tempDate <= DateTime.Now)
+            {
+                // 得出项目周期内 每天的燃尽数据
+                var query = Db.Queryable<Task, TaskRecord>((t, tr) => new object[]
+                {
+                    JoinType.Left, t.Id == tr.TaskId
+                }).Where((t, tr) => t.ParentId == 0 && SqlFunc.DateIsSame(tempDate, tr.CreateTime)).Sum((t, tr) => tr.Percent * t.Weight * 0.01);
+
+                remain -= query;
+                var dict = new Dictionary<string, object>
+                {
+                    {"date", tempDate.ToString("yyyy-MM-dd")}, 
+                    {"value", remain}
+                };
+                result.Add(dict);
+                tempDate = tempDate.AddDays(1);
+            }
+            
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取任务燃尽图数据
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public List<Dictionary<string, object>> getTaskBurndownChart(int taskId)
+        {
+            var task = Db.Queryable<Task>().Where(u => u.Id == taskId).Single();
+            
+            // 获取所有子任务
+            var subTaskIdList = Db.Queryable<Task>().Where(u => u.CascadeId.Contains(task.CascadeId) 
+                && SqlFunc.Subqueryable<Task>().Where(t => t.ParentId == u.Id).Count() == 0).Select(u => u.Id).ToList();
+
+            var startDate = task.StartTime;
+            var endDate = task.EndTime;
+            
+            var tempDate = task.StartTime;
+            var result = new List<Dictionary<string, object>>();
+            var remain = 100.0;
+
+            while (tempDate <= endDate && tempDate <= DateTime.Now)
+            {
+                // 得出项目周期内 每天的燃尽数据
+                var query = Db.Queryable<TaskRecord, Task>((tr, t) => new object[]
+                {
+                    JoinType.Left, tr.TaskId == t.Id
+                }).Where((tr, t) => subTaskIdList.Contains(tr.TaskId) && tr.Status == 1 && SqlFunc.DateIsSame(tempDate, tr.CreateTime))
+                    .Sum((tr, t) => t.Weight * tr.Percent * 0.01);
+
+                remain -= query;
+                var dict = new Dictionary<string, object>
+                {
+                    {"date", tempDate.ToString("yyyy-MM-dd")}, 
+                    {"value", remain}
+                };
+                result.Add(dict);
+                tempDate = tempDate.AddDays(1);
+            }
+            
+            return result;
         }
     }
 }

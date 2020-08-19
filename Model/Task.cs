@@ -123,17 +123,17 @@ namespace project_manage_api.Model
         /// </summary>
         public System.DateTime CreateTime { get { return this._CreateTime; } set { this._CreateTime = value; } }
 
-        private System.DateTime? _StartTime;
+        private System.DateTime _StartTime;
         /// <summary>
         /// 任务开始时间
         /// </summary>
-        public System.DateTime? StartTime { get { return this._StartTime; } set { this._StartTime = value; } }
+        public System.DateTime StartTime { get { return this._StartTime; } set { this._StartTime = value; } }
 
-        private System.DateTime? _EndTime;
+        private System.DateTime _EndTime;
         /// <summary>
         /// 任务结束时间
         /// </summary>
-        public System.DateTime? EndTime { get { return this._EndTime; } set { this._EndTime = value; } }
+        public System.DateTime EndTime { get { return this._EndTime; } set { this._EndTime = value; } }
 
         private System.String _Attachment;
         /// <summary>

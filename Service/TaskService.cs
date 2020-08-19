@@ -298,6 +298,10 @@ namespace project_manage_api.Service
                 var parentTask = SimpleDb.AsQueryable().Where(u => u.Id == task.ParentId).First();
                 if (parentTask.StartTime > task.StartTime || parentTask.EndTime < task.EndTime)
                     throw new Exception("该任务的时间范围必须包含在上级任务的时间范围内");
+                
+                // 如果上级任务存在任务提交记录 则无法新增
+                if (Db.Queryable<TaskRecord>().Where(u => u.TaskId == task.ParentId).Count() > 0 && task.Id == 0)
+                    throw new Exception("该任务存在任务提交记录 则无法新增子任务");
             }
             
             task.CreateTime = DateTime.Now;

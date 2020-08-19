@@ -127,5 +127,93 @@ namespace project_manage_api.Controllers
             
             return result;
         }
+        
+        /// <summary>
+        /// 首页工作台 项目提交情况统计
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<Dictionary<string, object>>> getSubmissionStatus()
+        {
+            var result = new Response<List<Dictionary<string, object>>>();
+
+            try
+            {
+                result.Result = _service.getSubmissionStatus();
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+            
+            return result;
+        }
+        
+        /// <summary>
+        /// 首页工作台 项目任务占比
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<Dictionary<string, object>>> getProjectTaskRatio()
+        {
+            var result = new Response<List<Dictionary<string, object>>>();
+
+            try
+            {
+                result.Result = _service.getProjectTaskRatio();
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+            
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取项目燃尽图数据
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<Dictionary<string, object>>> getProjectBurndownChart(int projectId)
+        {
+            var result = new Response<List<Dictionary<string, object>>>();
+
+            try
+            {
+                result.Result = _service.getProjectBurndownChart(projectId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+            
+            return result;
+        }
+        
+        /// <summary>
+        /// 获取任务燃尽图数据
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public Response<List<Dictionary<string, object>>> getTaskBurndownChart(int taskId)
+        {
+            var result = new Response<List<Dictionary<string, object>>>();
+
+            try
+            {
+                result.Result = _service.getTaskBurndownChart(taskId);
+            }
+            catch (Exception ex)
+            {
+                result.Code = 500;
+                result.Message = ex.Message;
+            }
+            
+            return result;
+        }
     }
 }
