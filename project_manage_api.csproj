@@ -19,7 +19,7 @@
       <PackageReference Include="NPOI" Version="2.5.1" />
       <PackageReference Include="sqlSugarCore" Version="5.0.0.15" />
       <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
-      <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.5.1" />
+      <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.4.0" />
     </ItemGroup>
 
     <ItemGroup>
